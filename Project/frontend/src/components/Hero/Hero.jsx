@@ -15,7 +15,7 @@ const Hero = () => {
         </p>
         
         <div className={styles.actions}>
-          <button className={styles.btnMain}>Открыть вклад</button>
+          <button className={styles.btnSecondary}>Открыть вклад</button>
           <button className={styles.btnSecondary}>Взять кредит</button>
         </div>
       </div>

@@ -17,7 +17,7 @@ const Header = () => {
         
         <div className={styles.authButtons}>
           <button className={styles.btnLogin}>Вход</button>
-          <button className={styles.btnRegister}>Регистрация</button>
+          <button className={styles.btnLogin}>Регистрация</button>
         </div>
       </div>
     </header>
