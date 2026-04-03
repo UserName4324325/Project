@@ -1,0 +1,74 @@
+/* src/components/Header/Header.module.css */
+.header {
+  border-bottom: 1px solid #eaeaea;
+  padding: 15px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.logo {
+  font-size: 32px;
+  font-weight: bold;
+  color: #000;
+}
+
+.nav {
+  display: flex;
+  gap: 25px;
+}
+
+.navLink {
+  text-decoration: none;
+  color: #555;
+  font-size: 18px;
+}
+
+.authButtons {
+  display: flex;
+  gap: 10px;
+}
+
+/* --- Стилизация Кнопок --- */
+
+/* Белая кнопка (Вход) */
+.btnLogin {
+  background-color: var(--text-color-light);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all var(--transition-speed);
+}
+
+/* [Hover]: Белая становится Фиолетовой */
+.btnLogin:hover {
+  background-color: var(--primary-color);
+  color: var(--text-color-light);
+}
+
+/* Фиолетовая кнопка (Регистрация) */
+.btnRegister {
+  background-color: var(--primary-color);
+  color: var(--text-color-light);
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: background-color var(--transition-speed);
+}
+
+/* [Hover]: Фиолетовая немного белеет (становится светлее) */
+.btnRegister:hover {
+  background-color: #7b75e1; /* Более светлый оттенок фиолетового */
+}
+
+.navLink:hover {
+  color: #000000;
+}

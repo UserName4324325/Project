@@ -1,0 +1,42 @@
+/* src/components/Footer/Footer.module.css */
+.footer {
+  background-color: #000000; /* Чистый черный как на скрине */
+  color: #ffffff;
+  padding: 40px 0;
+  text-align: center;
+  font-size: 18px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Расстояние между копирайтом и контактами */
+  padding: 0 20px;
+}
+
+.copyright {
+  margin: 0;
+  font-weight: 400;
+}
+
+.contacts {
+  color: #ffffff;
+}
+
+/* Стилизация ссылок, чтобы они были белыми и аккуратными */
+.link {
+  color: #ffffff;
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.link:hover {
+  opacity: 0.8; /* Легкий эффект при наведении */
+}
+
+.divider {
+  margin: 0 10px;
+  color: #ffffff;
+}

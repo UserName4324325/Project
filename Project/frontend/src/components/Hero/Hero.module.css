@@ -1,0 +1,71 @@
+/* src/components/Hero/Hero.module.css */
+.hero {
+  padding: 80px 0;
+  text-align: center;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.title {
+  font-size: 60px;
+  font-weight: 800;
+  color: #000;
+  margin-bottom: 20px;
+  line-height: 1.2;
+}
+
+.highlight {
+  color: var(--primary-color);
+}
+
+.subtitle {
+  color: #777;
+  font-size: 18px;
+  margin-bottom: 40px;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* --- Стилизация Кнопок --- */
+
+/* Фиолетовая кнопка (Открыть вклад) */
+.btnMain {
+  background-color: var(--primary-color);
+  color: var(--text-color-light);
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  transition: background-color var(--transition-speed);
+}
+
+/* [Hover]: Фиолетовая немного белеет */
+.btnMain:hover {
+  background-color: #7b75e1;
+}
+
+/* Белая кнопка (Взять кредит) */
+.btnSecondary {
+  background-color: var(--text-color-light);
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: 12px 30px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 600;
+  transition: all var(--transition-speed);
+}
+
+/* [Hover]: Белая становится Фиолетовой */
+.btnSecondary:hover {
+  background-color: var(--primary-color);
+  color: var(--text-color-light);
+}
