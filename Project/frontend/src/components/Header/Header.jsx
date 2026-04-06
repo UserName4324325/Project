@@ -16,9 +16,15 @@ const Header = () => {
         </nav>
         
         <div className={styles.authButtons}>
-          <button className={styles.btnLogin}>Вход</button>
-          <button className={styles.btnLogin}>Регистрация</button>
+          <Link to="/login" style={{ textDecoration: 'none' }}>
+            <button className={styles.btnLogin}>Вход</button>
+          </Link>
+          
+          <Link to="/register" style={{ textDecoration: 'none' }}>
+            <button className={styles.btnLogin}>Регистрация</button>
+          </Link>
         </div>
+
       </div>
     </header>
   );

@@ -1,30 +1,28 @@
-// src/components/Services/Services.jsx
 import React from 'react';
 import styles from './Services.module.css';
 import { Link } from 'react-router-dom';
 
-// Данные для карточек (для удобства)
 const servicesData = [
   {
-    icon: '↗', // Упрощенный символ стрелки
+    icon: '↗',
     title: 'Вклады',
     desc: 'До 8% годовых',
     buttonText: 'Подробнее',
-    ink: 'vklady',
+    path: '/vklady',
   },
   {
-    icon: '$', // Упрощенный символ доллара
+    icon: '$',
     title: 'Кредиты',
     desc: 'От 5.9%',
     buttonText: 'Рассчитать',
-    ink: 'kredity',
+    path: '/kredity', 
   },
   {
-    icon: '👤', // Упрощенный символ пользователя
+    icon: '👤',
     title: 'Кабинет',
     desc: 'Все счета онлайн',
     buttonText: 'Войти',
-    link: '',
+    path: '/login', 
   },
 ];
 
@@ -34,12 +32,18 @@ const Services = () => {
       <div className={styles.container}>
         {servicesData.map((service, index) => (
           <div key={index} className={styles.card}>
+            
             <div className={styles.iconWrapper}>
               <span className={styles.icon}>{service.icon}</span>
             </div>
+
             <h3 className={styles.cardTitle}>{service.title}</h3>
             <p className={styles.cardDesc}>{service.desc}</p>
-            <button className={styles.cardButton}>{service.buttonText}</button>
+
+            <Link to={service.path} style={{ textDecoration: 'none', width: '100%' }}>
+              <button className={styles.cardButton}>{service.buttonText}</button>
+            </Link>
+
           </div>
         ))}
       </div>

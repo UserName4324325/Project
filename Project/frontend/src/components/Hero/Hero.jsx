@@ -1,5 +1,6 @@
 // src/components/Hero/Hero.jsx
 import React from 'react';
+import { Link } from 'react-router-dom';
 import styles from './Hero.module.css';
 
 const Hero = () => {
@@ -15,8 +16,15 @@ const Hero = () => {
         </p>
         
         <div className={styles.actions}>
-          <button className={styles.btnSecondary}>Открыть вклад</button>
-          <button className={styles.btnSecondary}>Взять кредит</button>
+          {/* Оборачиваем кнопку в Link для перехода на /vklady */}
+          <Link to="/vklady" style={{ textDecoration: 'none' }}>
+            <button className={styles.btnSecondary}>Открыть вклад</button>
+          </Link>
+
+          {/* Оборачиваем кнопку в Link для перехода на /kredity */}
+          <Link to="/kredity" style={{ textDecoration: 'none' }}>
+            <button className={styles.btnSecondary}>Взять кредит</button>
+          </Link>
         </div>
       </div>
     </section>

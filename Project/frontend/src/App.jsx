@@ -1,10 +1,12 @@
 // src/App.jsx
 import React from 'react';
-import { Routes, Route } from 'react-router-dom'; // Импортируем компоненты роутера
+import { Routes, Route } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Hero from './components/Hero/Hero';
 import Services from './components/Services/Services';
 import Footer from './components/Footer/Footer';
+import Login from './components/Auth/Login'; 
+import Register from './components/Auth/Register'; 
 import './index.css';
 
 function App() {
@@ -35,6 +37,10 @@ function App() {
             <p>Тут будет кредитный калькулятор.</p>
           </div>
         } />
+
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
       </Routes>
 
       <Footer />
