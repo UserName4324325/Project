@@ -1,0 +1,66 @@
+.container {
+  margin-top: 20px;
+  color: #333;
+}
+
+.subtitle {
+  margin-bottom: 15px;
+  font-size: 1.2rem;
+  color: #5c57af;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.table th, .table td {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+}
+
+.table th {
+  background-color: #f8f9fa;
+  color: #777;
+  font-weight: 600;
+}
+
+.profit {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.amount, .total {
+  font-weight: 600;
+}
+
+.statusOpen {
+  background: #e1f5fe;
+  color: #0288d1;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.statusClosed {
+  background: #f1f8e9;
+  color: #388e3c;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+}
+
+.empty {
+  text-align: center;
+  padding: 20px;
+  color: #999;
+}

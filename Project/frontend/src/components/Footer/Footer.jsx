@@ -1,4 +1,3 @@
-// src/components/Footer/Footer.jsx
 import React from 'react';
 import styles from './Footer.module.css';
 
@@ -7,12 +6,12 @@ const Footer = () => {
     <footer className={styles.footer}>
       <div className={styles.container}>
         <p className={styles.copyright}>
-          © 2026 ООО ТМЫВ. Все права защищены.
+          © 2026 ООО ТМЫВ. Все права <span style={{color:"#9e1414"}}>не</span> защищены.
         </p>
         <div className={styles.contacts}>
           <span>Контакты: </span>
           <a href="mailto:support@OOOTMYV.ru" className={styles.link}>
-            support@otmyv.ru
+            obmanem@email.ru
           </a>
           <span className={styles.divider}>|</span>
           <a href="tel:+78001234567" className={styles.link}>

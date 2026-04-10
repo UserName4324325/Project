@@ -1,4 +1,3 @@
-/* src/components/Header/Header.module.css */
 .header {
   border-bottom: 1px solid #eaeaea;
   padding: 15px 0;
@@ -35,9 +34,6 @@
   gap: 10px;
 }
 
-/* --- Стилизация Кнопок --- */
-
-/* Белая кнопка (Вход) */
 .btnLogin {
   background-color: var(--text-color-light);
   color: var(--primary-color);
@@ -48,13 +44,11 @@
   transition: all var(--transition-speed);
 }
 
-/* [Hover]: Белая становится Фиолетовой */
 .btnLogin:hover {
   background-color: var(--primary-color);
   color: var(--text-color-light);
 }
 
-/* Фиолетовая кнопка (Регистрация) */
 .btnRegister {
   background-color: var(--primary-color);
   color: var(--text-color-light);
@@ -64,11 +58,60 @@
   transition: background-color var(--transition-speed);
 }
 
-/* [Hover]: Фиолетовая немного белеет (становится светлее) */
 .btnRegister:hover {
-  background-color: #7b75e1; /* Более светлый оттенок фиолетового */
+  background-color: #7b75e1; 
 }
 
 .navLink:hover {
   color: #000000;
+}
+
+.btnProfile {
+  background: transparent;
+  border: 1px solid #5c57af;
+  color: #5c57af;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btnLogoutRed {
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btnLogoutRed:hover {
+  background-color: #e60000;
+}
+
+.userName {
+  color: black;
+  font-weight: 600;
+}
+
+.btnExit{
+  background-color: white;
+  color: red;
+  border: 1px solid red;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: all var(--transition-speed);
+}
+
+.btnExit:hover {
+  background-color: red;
+  color: white;
+}
+
+.userName {
+  color: #000;
+  font-weight: 600;
+  font-size: 15px;
+  margin-left: 5px;
 }

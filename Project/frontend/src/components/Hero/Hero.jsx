@@ -16,12 +16,10 @@ const Hero = () => {
         </p>
         
         <div className={styles.actions}>
-          {/* Оборачиваем кнопку в Link для перехода на /vklady */}
           <Link to="/vklady" style={{ textDecoration: 'none' }}>
             <button className={styles.btnSecondary}>Открыть вклад</button>
           </Link>
 
-          {/* Оборачиваем кнопку в Link для перехода на /kredity */}
           <Link to="/kredity" style={{ textDecoration: 'none' }}>
             <button className={styles.btnSecondary}>Взять кредит</button>
           </Link>

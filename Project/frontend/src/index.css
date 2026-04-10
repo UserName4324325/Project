@@ -1,12 +1,17 @@
-/* src/index.css */
 :root {
-  --primary-color: #5d56d3; /* Основной фиолетовый */
+  --primary-color: #5d56d3;
   --text-color-dark: #333;
   --text-color-light: #fff;
   --bg-color-main: #fff;
   --bg-color-cards: #f0f0f0;
   --transition-speed: 0.3s;
 }
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
 
 body {
   margin: 0;
@@ -21,4 +26,14 @@ button {
   cursor: pointer;
   border: none;
   font-family: inherit;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+main {
+  flex: 1;
 }

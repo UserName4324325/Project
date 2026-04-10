@@ -1,6 +1,5 @@
-/* src/components/Footer/Footer.module.css */
 .footer {
-  background-color: #000000; /* Чистый черный как на скрине */
+  background-color: #000000; 
   color: #ffffff;
   padding: 40px 0;
   text-align: center;
@@ -12,7 +11,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px; /* Расстояние между копирайтом и контактами */
+  gap: 20px; 
   padding: 0 20px;
 }
 
@@ -25,7 +24,6 @@
   color: #ffffff;
 }
 
-/* Стилизация ссылок, чтобы они были белыми и аккуратными */
 .link {
   color: #ffffff;
   text-decoration: none;
@@ -33,7 +31,7 @@
 }
 
 .link:hover {
-  opacity: 0.8; /* Легкий эффект при наведении */
+  opacity: 0.8;
 }
 
 .divider {

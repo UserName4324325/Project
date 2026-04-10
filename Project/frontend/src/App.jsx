@@ -1,12 +1,15 @@
-// src/App.jsx
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Header from './components/Header/Header';
 import Hero from './components/Hero/Hero';
 import Services from './components/Services/Services';
 import Footer from './components/Footer/Footer';
+import ProtectedRoute from './components/ProtectedRoute';
 import Login from './components/Auth/Login'; 
 import Register from './components/Auth/Register'; 
+import Deposits from './components/Deposits/Deposits';
+import Loans from './components/Loans/Loans';
+import Profile from './components/Profile/Profile';
 import './index.css';
 
 function App() {
@@ -14,34 +17,45 @@ function App() {
     <div className="App">
       <Header />
       
-      <Routes>
-        <Route path="/" element={
-          <main>
-            <Hero />
-            <Services />
-          </main>
-        } />
-
-        {/* Страница Вклады (путь "/vklady") */}
-        <Route path="/vklady" element={
-          <div style={{ padding: '100px 20px', textAlign: 'center' }}>
-            <h1>Страница со вкладами</h1>
-            <p>Тут будет список всех вкладов банка.</p>
-          </div>
-        } />
+      <main>
+        <Routes>
+          <Route path="/" element={
+            <>
+              <Hero />
+              <Services />
+            </>
+          } />
         
-        {/* Страница Кредиты (путь "/kredity") */}
-        <Route path="/kredity" element={
-          <div style={{ padding: '100px 20px', textAlign: 'center' }}>
-            <h1>Страница с кредитами</h1>
-            <p>Тут будет кредитный калькулятор.</p>
-          </div>
-        } />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          <Route 
+            path="/vklady" 
+            element={
+              <ProtectedRoute>
+                <Deposits />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/kredity" 
+            element={
+              <ProtectedRoute>
+                <Loans />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/profile" 
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            } 
+          />
 
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-
-      </Routes>
+        </Routes>
+      </main>
 
       <Footer />
     </div>
