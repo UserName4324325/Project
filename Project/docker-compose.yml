@@ -1,0 +1,43 @@
+services:
+  db:
+    image: postgres:latest
+    container_name: bank_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: qwerty911
+      POSTGRES_DB: BankDb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  backend:
+    build:
+      context: ./backend/WebBankApplication
+      dockerfile: Dockerfile
+    container_name: bank_api
+    restart: always
+    environment:
+      - ASPNETCORE_URLS=http://+:5000
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__Postgres=Host=db;Port=5432;Database=BankDb;Username=postgres;Password=qwerty911
+      - Jwt__Key=Vash_Ochen_Dlinniy_I_Sekretniy_Klyuch_123!
+    ports:
+      - "5000:5000"
+    depends_on:
+      - db
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bank_web
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:

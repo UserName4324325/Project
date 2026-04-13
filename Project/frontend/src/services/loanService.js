@@ -1,9 +1,10 @@
-const API_URL = "http://localhost:5037/api/Loans";
+const API_URL_LOANS = `${import.meta.env.VITE_API_URL}/Loans`;
+
 
 export const loanService = {
   async takeLoan(loanData) {
     const token = localStorage.getItem('token')?.replace(/"/g, '');
-    const response = await fetch(`${API_URL}/take`, {
+    const response = await fetch(`${API_URL_LOANS}/take`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -21,7 +22,7 @@ export const loanService = {
 
   async getUserLoans(userId) {
     const token = localStorage.getItem('token')?.replace(/"/g, '');
-    const response = await fetch(`${API_URL}/user/${userId}`, {
+    const response = await fetch(`${API_URL_LOANS}/user/${userId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`

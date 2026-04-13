@@ -1,10 +1,10 @@
-const API_URL = "http://localhost:5037/api/Deposits";
+const API_URL_DEPOSITS = `${import.meta.env.VITE_API_URL}/Deposits`;
 
 export const depositService = {
   async openDeposit(depositData) {
     const token = localStorage.getItem('token')?.replace(/"/g, '');
 
-    const response = await fetch(`${API_URL}/open`, {
+    const response = await fetch(`${API_URL_DEPOSITS}/open`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',
@@ -25,7 +25,7 @@ export const depositService = {
   async getUserDeposits(userId) {
     const token = localStorage.getItem('token')?.replace(/"/g, '');
 
-    const response = await fetch(`${API_URL}/user/${userId}`, {
+    const response = await fetch(`${API_URL_DEPOSITS}/user/${userId}`, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${token}`

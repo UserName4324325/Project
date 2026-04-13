@@ -11,9 +11,9 @@ namespace WebBankApplication.Repository;
 
 public class LoanRepository : ILoanRepository
 {
-    private readonly ApplicationDbContext _context;
+    private readonly AppDbContext _context;
 
-    public LoanRepository(ApplicationDbContext context)
+    public LoanRepository(AppDbContext context)
     {
         _context = context;
     }

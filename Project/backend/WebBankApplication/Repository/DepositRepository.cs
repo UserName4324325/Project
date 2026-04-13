@@ -11,9 +11,9 @@ namespace WebBankApplication.Repository;
 
 public class DepositRepository : IDepositRepository
 {
-    private readonly ApplicationDbContext _context;
+    private readonly AppDbContext _context;
 
-    public DepositRepository(ApplicationDbContext context)
+    public DepositRepository(AppDbContext context)
     {
         _context = context;
     }

@@ -1,10 +1,11 @@
-const API_URL = "http://localhost:5037/api/Auth";
+const API_URL_AUTH = `${import.meta.env.VITE_API_URL}/Auth`;
+
 
 export const authService = {
 
   async register(userData) {
 
-    const response = await fetch(`${API_URL}/register`, {
+    const response = await fetch(`${API_URL_AUTH}/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(userData)
@@ -19,7 +20,7 @@ export const authService = {
     const token = localStorage.getItem('token');
     if (!token) return null;
 
-    const response = await fetch(`${API_URL}/me`, {
+    const response = await fetch(`${API_URL_AUTH}/me`, {
       method: 'GET',
       headers: { 
         'Authorization': `Bearer ${token}`,
@@ -36,7 +37,7 @@ export const authService = {
   },
 
   async login(credentials) {
-  const response = await fetch(`${API_URL}/login`, {
+  const response = await fetch(`${API_URL_AUTH}/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials)
@@ -51,7 +52,7 @@ export const authService = {
     localStorage.setItem('user', JSON.stringify(data)); 
   }
   return data;
-},
+  },
 
   logout() {
     localStorage.removeItem('token');

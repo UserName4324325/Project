@@ -14,10 +14,10 @@ namespace WebBankApplication.Repository;
 
 public class AuthRepository : IAuthRepository
 {
-    private readonly ApplicationDbContext _context;
+    private readonly AppDbContext _context;
     private readonly IConfiguration _config;
 
-    public AuthRepository(ApplicationDbContext context, IConfiguration config)
+    public AuthRepository(AppDbContext context, IConfiguration config)
     {
         _context = context;
         _config = config;

@@ -4,9 +4,9 @@ using WebBankApplication.Models;
 
 namespace WebBankApplication.Data;
 
-public class ApplicationDbContext : DbContext
+public class AppDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    public AppDbContext(DbContextOptions<AppDbContext> options)
         : base(options)
     {
     }

@@ -10,12 +10,12 @@ using WebBankApplication.Repository;
 namespace WebBankApplication.BackgroundServices;
 
 
-public class DepositBackgroundService : BackgroundService
+public class BankBackgroundService : BackgroundService
 {
     private readonly IServiceProvider _services;
-    private readonly ILogger<DepositBackgroundService> _logger;
+    private readonly ILogger<BankBackgroundService> _logger;
 
-    public DepositBackgroundService(IServiceProvider services, ILogger<DepositBackgroundService> logger)
+    public BankBackgroundService(IServiceProvider services, ILogger<BankBackgroundService> logger)
     {
         _services = services;
         _logger = logger;

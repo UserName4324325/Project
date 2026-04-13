@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Linq;
 using System.Text;
 using WebBankApplication.BackgroundServices;
 using WebBankApplication.Data;
@@ -15,7 +16,7 @@ var builder = WebApplication.CreateBuilder(args);
 
  
 // postgreSQL
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
 
@@ -26,7 +27,7 @@ builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 
 
 // фоновые службы
-builder.Services.AddHostedService<DepositBackgroundService>();
+builder.Services.AddHostedService<BankBackgroundService>();
 
 
 builder.Services.AddControllers();
@@ -37,7 +38,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReactApp",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
                   .AllowAnyHeader()
                   .AllowAnyMethod()
                   .AllowCredentials();
@@ -76,6 +77,24 @@ builder.Services.AddAuthorization();
 
 
 var app = builder.Build();
+
+// Автоматическое применение миграций при старте (База Данных будет пустая)
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<AppDbContext>();
+        if (context.Database.GetPendingMigrations().Any())
+        {
+            context.Database.Migrate();
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Ошибка миграции: {ex.Message}");
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
