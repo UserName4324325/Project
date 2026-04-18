@@ -79,7 +79,7 @@ public class LoanRepository : ILoanRepository
             loan.User.Balance -= payment;
             loan.RemainingAmount -= payment;
 
-            if (loan.RemainingAmount <= 0.01m)
+            if (loan.RemainingAmount <= 0.05m)
             {
                 loan.RemainingAmount = 0;
                 loan.IsPaid = true;

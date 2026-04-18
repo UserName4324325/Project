@@ -9,7 +9,7 @@ const Hero = () => {
       <div className={styles.container}>
         <h1 className={styles.title}>
           Умный банк для <br />
-          <span className={styles.highlight}>ваших целей</span>
+          <span className={styles.highlight}>наших целей</span>
         </h1>
         <p className={styles.subtitle}>
           Откройте вклад или получите кредит за 10 минут

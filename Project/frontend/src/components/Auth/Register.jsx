@@ -15,6 +15,19 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (formData.fullName.length > 40) {
+      alert("Имя не должно превышать 40 символов!");
+      return;
+    }
+    if (formData.email.length > 40) {
+      alert("Email не должен превышать 40 символов!");
+      return;
+    }
+    if (formData.password.length > 50) {
+      alert("Пароль не должен превышать 50 символов!");
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       alert("Пароли не совпадают!");
       return;
