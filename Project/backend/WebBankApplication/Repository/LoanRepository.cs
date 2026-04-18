@@ -25,26 +25,22 @@ public class LoanRepository : ILoanRepository
         if (user == null) throw new Exception("Пользователь не найден");
 
         // АННУИТЕТНАЯ МАТЕМАТИКА
+        decimal monthlyRate = (decimal)dto.InterestRate / 12 / 100;
+        decimal pow = (decimal)Math.Pow(1 + (double)monthlyRate, dto.TermInSeconds);
 
-        double monthlyRate = dto.InterestRate / 12 / 100;
-        double pow = Math.Pow(1 + monthlyRate, dto.TermInSeconds);
-
-        decimal paymentPerSecond = (decimal)((double)dto.Amount * (monthlyRate * pow) / (pow - 1));
+        decimal paymentPerSecond = dto.Amount * (monthlyRate * pow) / (pow - 1);
 
         decimal totalToReturn = paymentPerSecond * dto.TermInSeconds;
-
         //
 
         var loan = new Loan
         {
-            Id = Guid.NewGuid(),
             TotalAmount = totalToReturn,
             RemainingAmount = totalToReturn,
             InterestRate = dto.InterestRate,
             TermInSeconds = dto.TermInSeconds,
             PerSecondPayment = paymentPerSecond,
-            StartDate = DateTime.UtcNow,
-            IsPaid = false,
+
             UserId = dto.UserId
         };
 
@@ -53,7 +49,7 @@ public class LoanRepository : ILoanRepository
         await _context.Loans.AddAsync(loan);
         await _context.SaveChangesAsync();
 
-        return MapToDto(loan);
+        return MapToLoanResponseDto(loan);
     }
 
     public async Task<List<LoanResponseDto>> GetUserLoans(Guid userId)
@@ -63,9 +59,10 @@ public class LoanRepository : ILoanRepository
             .OrderByDescending(l => l.StartDate)
             .ToListAsync();
 
-        return loans.Select(MapToDto).ToList();
+        return loans.Select(MapToLoanResponseDto).ToList();
     }
 
+    // background method
     public async Task ProcessLoanPayments()
     {
         var activeLoans = await _context.Loans
@@ -92,6 +89,6 @@ public class LoanRepository : ILoanRepository
         await _context.SaveChangesAsync();
     }
 
-    private LoanResponseDto MapToDto(Loan l) =>
-        new LoanResponseDto(l.Id, l.TotalAmount, l.RemainingAmount, l.InterestRate, l.StartDate, l.PerSecondPayment, l.IsPaid);
+    private LoanResponseDto MapToLoanResponseDto(Loan l) =>
+        new LoanResponseDto(l.Id, l.TermInSeconds, l.TotalAmount, l.RemainingAmount, l.InterestRate, l.StartDate, l.PerSecondPayment, l.IsPaid);
 }

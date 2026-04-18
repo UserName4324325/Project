@@ -8,7 +8,6 @@ namespace WebBankApplication.Repository;
 public interface IAuthRepository
 {
     Task<User?> Register(User user, string password);
-    Task<AuthResponseDto?> Login(string email, string password);
+    Task<UserAuthResponseDto?> Login(string email, string password);
     Task<bool> UserExists(string email);
-    Task<User?> GetUserById(Guid id);
 }

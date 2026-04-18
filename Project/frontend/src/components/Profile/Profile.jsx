@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './Profile.module.css';
 import { depositService } from '../../services/depositService';
-import { authService } from '../../services/authService';
 import { loanService } from '../../services/loanService';
+import { userService } from '../../services/userService';
 
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -11,34 +11,31 @@ const Profile = () => {
   const [loading, setLoading] = useState(false);
   
   const userFromStorage = JSON.parse(localStorage.getItem('user') || '{}');
-  const userId = userFromStorage.id || userFromStorage.Id;
-  
   const [balance, setBalance] = useState(userFromStorage.balance || 0);
 
+
   const refreshData = useCallback(async () => {
-    if (!userId) return;
     try {
-      const [depositsData, loansData, updatedUser] = await Promise.all([
-        depositService.getUserDeposits(userId),
-        loanService.getUserLoans(userId),
-        authService.getCurrentUser()
+      const [depositsData, loansData, userData] = await Promise.all([
+        depositService.getUserDeposits(userFromStorage.id),
+        loanService.getUserLoans(userFromStorage.id),
+        userService.getUser()
       ]);
 
       if (depositsData) setDeposits(depositsData);
       if (loansData) setLoans(loansData);
 
-      if (updatedUser) {
-        setBalance(updatedUser.balance);
-        const currentUserData = JSON.parse(localStorage.getItem('user') || '{}');
+      if (userData) {
+        setBalance(userData.balance);
         localStorage.setItem('user', JSON.stringify({ 
-          ...currentUserData, 
-          balance: updatedUser.balance 
+          ...userFromStorage, 
+          balance: userData.balance 
         }));
       }
     } catch (err) {
       console.error("Ошибка при обновлении данных:", err);
     }
-  }, [userId]);
+  }, [userFromStorage.id]);
 
   useEffect(() => {
     setLoading(true);
@@ -46,14 +43,11 @@ const Profile = () => {
   }, [refreshData]);
 
   useEffect(() => {
-    const activeDeposits = deposits.filter(d => !(d.isClosed || d.IsClosed));
-    if (activeDeposits.length === 0) return;
-
-    const timers = activeDeposits.map(dep => {
+    const timers = deposits.map(dep => {
       const start = new Date(dep.startDate || dep.StartDate).getTime();
       const term = (dep.termInSeconds || dep.TermInSeconds) * 1000;
       const endTime = start + term;
-      const delay = Math.max(endTime - Date.now() + 2000, 3000); 
+      const delay = Math.max(endTime - Date.now() + 2000, 1000); 
 
       return setTimeout(() => refreshData(), delay);
     });
@@ -67,7 +61,7 @@ const Profile = () => {
     if (hasActiveLoans) {
       const interval = setInterval(() => {
         refreshData();
-      }, 3000); // Интервал обновления при активном кредите 3 секунды
+      }, 1000);
       
       return () => clearInterval(interval);
     }
@@ -122,12 +116,12 @@ const Profile = () => {
                       <th>Прибыль</th>
                       <th>Итого</th>
                       <th>Дата открытия</th>
+                      <th>Срок</th>
                       <th>Статус</th>
                      </tr>
                    </thead>
                    <tbody>
                     {[...deposits]
-                      .sort((a, b) => new Date(b.startDate) - new Date(a.startDate))
                       .map((dep) => (
                         <tr key={dep.id || dep.Id}>
                           <td>{(dep.amount || 0).toLocaleString()} ₽</td>
@@ -148,6 +142,9 @@ const Profile = () => {
                                   second: '2-digit'
                                 }) 
                               : '—'}
+                          </td>
+                          <td>
+                            {(dep.term || dep.TermInSeconds || dep.termInSeconds || 0).toLocaleString()} сек.
                           </td>
                           <td>
                             <span className={dep.isClosed ? styles.statusClosed : styles.statusActive}>
@@ -174,6 +171,7 @@ const Profile = () => {
                       <th>Осталось</th>
                       <th>Платеж/сек</th>
                       <th>Дата открытия</th>
+                      <th>Срок</th>
                       <th>Статус</th>
                     </tr>
                   </thead>
@@ -182,7 +180,6 @@ const Profile = () => {
                       const total = loan.totalAmount || loan.TotalAmount || 0;
                       const remaining = loan.remainingAmount || loan.RemainingAmount || 0;
                       const perSec = loan.perSecondPayment || loan.PerSecondPayment || 0;
-                      const start = new Date(loan.startDate || loan.StartDate).getTime();
                       const isPaid = loan.isPaid || loan.IsPaid || false;
 
                       return (
@@ -201,7 +198,9 @@ const Profile = () => {
                                   minute: '2-digit',
                                   second: '2-digit'
                                 }) 
-                              : '—'}</td>
+                              : '—'}
+                          </td>
+                          <td>{(loan.term || loan.TermInSeconds || loan.termInSeconds || 0).toLocaleString()} сек.</td>
                           <td>
                             <span className={isPaid ? styles.statusClosed : styles.statusActive}>
                               {isPaid ? 'Погашен' : 'Выплачивается'}

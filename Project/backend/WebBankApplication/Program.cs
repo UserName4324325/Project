@@ -1,16 +1,12 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Linq;
-using System.Text;
 using WebBankApplication.BackgroundServices;
 using WebBankApplication.Data;
+using WebBankApplication.Extensions;
 using WebBankApplication.Repository;
+using WebBankApplication.TokenService;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,95 +16,41 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
 
 
-// DI
+// DI && Репозитории
 builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IDepositRepository, DepositRepository>();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 
 // фоновые службы
 builder.Services.AddHostedService<BankBackgroundService>();
 
 
+// Контроллеры
 builder.Services.AddControllers();
 
+
+// JWT
+builder.Services.AddIdentityServices(builder.Configuration);
+
+
 // CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReactApp",
-        policy =>
-        {
-            policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
-        });
-});
-
-
-
-// JWT 
-var jwtKey = builder.Configuration["Jwt:Key"];
-var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.RequireHttpsMetadata = false;
-    options.SaveToken = true;
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = key,
-        ValidateIssuer = false,
-        ValidateAudience = false,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-});
-
-
-builder.Services.AddAuthorization();
-
+builder.Services.AddCorsServices(builder.Configuration);
 
 
 var app = builder.Build();
 
-// Автоматическое применение миграций при старте (База Данных будет пустая)
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<AppDbContext>();
-        if (context.Database.GetPendingMigrations().Any())
-        {
-            context.Database.Migrate();
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Ошибка миграции: {ex.Message}");
-    }
-}
 
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+// Migration
+app.ApplyMigrations();
 
-//app.UseHttpsRedirection();
 
 app.UseCors("AllowReactApp");
-
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();

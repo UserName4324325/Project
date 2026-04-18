@@ -5,7 +5,7 @@ namespace WebBankApplication.Models;
 public record Loan
 {
     public Guid Id { get; set; } = Guid.NewGuid();
-    public decimal TotalAmount { get; set; }    
+    public decimal TotalAmount { get; set; }
     public decimal RemainingAmount { get; set; }
     public float InterestRate { get; set; }
     public int TermInSeconds { get; set; }

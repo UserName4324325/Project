@@ -15,6 +15,7 @@ public record TakeLoanDto(
 public record LoanResponseDto(
 
     Guid Id,
+    int TermInSeconds,
     decimal TotalAmount,
     decimal RemainingAmount,
     float InterestRate,

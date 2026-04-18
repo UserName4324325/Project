@@ -126,3 +126,13 @@
 @media (max-width: 768px) {
   .row { grid-template-columns: 1fr; }
 }
+
+.balanceInfo {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: -15px;
+}
+
+.balanceInfo strong {
+  color: #5c57af;
+}

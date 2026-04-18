@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using WebBankApplication.DTOs;
 using WebBankApplication.Models;
@@ -28,7 +26,6 @@ public class AuthController : ControllerBase
 
         var user = new User
         {
-            Id = Guid.NewGuid(),
             FullName = request.FullName,
             Email = request.Email
         };
@@ -50,25 +47,5 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Неверный Email или пароль" });
 
         return Ok(authResponse);
-    }
-
-    [Authorize]
-    [HttpGet("me")]
-    public async Task<IActionResult> GetCurrentUser()
-    {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-        if (userIdClaim == null) return Unauthorized();
-
-        var user = await _authRepo.GetUserById(Guid.Parse(userIdClaim.Value));
-        if (user == null) return NotFound();
-
-        return Ok( new AuthResponseDto (
-
-            Token: "",
-            Id: user.Id,
-            FullName: user.FullName,
-            Balance: user.Balance
-
-        ));
     }
 }

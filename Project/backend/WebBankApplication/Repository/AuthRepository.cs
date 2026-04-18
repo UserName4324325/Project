@@ -1,32 +1,29 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 using WebBankApplication.Data;
 using WebBankApplication.DTOs;
 using WebBankApplication.Models;
+using WebBankApplication.TokenService;
 
 namespace WebBankApplication.Repository;
 
 public class AuthRepository : IAuthRepository
 {
     private readonly AppDbContext _context;
-    private readonly IConfiguration _config;
+    private readonly ITokenService _tokenService;
 
-    public AuthRepository(AppDbContext context, IConfiguration config)
+    private const decimal InitialUserBalance = 100_000m;
+
+    public AuthRepository(AppDbContext context, ITokenService tokenService)
     {
         _context = context;
-        _config = config;
+        _tokenService = tokenService;
     }
 
     public async Task<User?> Register(User user, string password)
     {
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(password);
-        user.Balance = 100_000;
+        user.Balance = InitialUserBalance;
 
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
@@ -34,44 +31,22 @@ public class AuthRepository : IAuthRepository
         return user;
     }
 
-    public async Task<AuthResponseDto?> Login(string email, string password)
+    public async Task<UserAuthResponseDto?> Login(string email, string password)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             return null;
 
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim(ClaimTypes.Email, user.Email),
-            new Claim(ClaimTypes.Name, user.FullName)
-        };
+        var token = _tokenService.CreateToken(user);
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256Signature);
-
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.Now.AddDays(1),
-            SigningCredentials = creds
-        };
-
-        var tokenHandler = new JwtSecurityTokenHandler();
-        var token = tokenHandler.CreateToken(tokenDescriptor);
-
-        return new AuthResponseDto(
-            Token: tokenHandler.WriteToken(token),
+        return new UserAuthResponseDto
+        (
             Id: user.Id,
+            Token: token,
             FullName: user.FullName,
             Balance: user.Balance
         );
-    }
-
-    public async Task<User?> GetUserById(Guid id)
-    {
-        return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<bool> UserExists(string email) =>

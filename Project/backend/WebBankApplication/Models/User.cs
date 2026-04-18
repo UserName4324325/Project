@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace WebBankApplication.Models;
 
-public class User
+public record User
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string FullName { get; set; } = string.Empty;

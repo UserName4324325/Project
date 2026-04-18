@@ -25,15 +25,12 @@ public class DepositRepository : IDepositRepository
         if (user == null || user.Balance < dto.Amount)
             throw new Exception("Недостаточно средств или пользователь не найден");
 
-        decimal profit = dto.Amount * (decimal)(dto.InterestRate / 100);
+        decimal profit = CalculateProfit(dto.Amount, dto.InterestRate, dto.TermInSeconds);
 
         var deposit = new Deposit
         {
-            Id = Guid.NewGuid(),
             Amount = dto.Amount,
             InterestRate = dto.InterestRate,
-            StartDate = DateTime.UtcNow,
-            IsClosed = false,
             TermInSeconds = dto.TermInSeconds,
             Profit = profit,
 
@@ -45,36 +42,41 @@ public class DepositRepository : IDepositRepository
         await _context.Deposits.AddAsync(deposit);
         await _context.SaveChangesAsync();
 
-        return MapToDto(deposit);
+        return MapToResponseDto(deposit);
     }
 
     public async Task<List<DepositResponseDto>> GetUserDeposits(Guid userId)
     {
         var deposits = await _context.Deposits
             .Where(d => d.UserId == userId)
+            .OrderByDescending(d => d.StartDate)
             .ToListAsync();
 
-        return deposits.Select(MapToDto).ToList();
+        return deposits.Select(MapToResponseDto).ToList();
     }
 
-    private DepositResponseDto MapToDto(Deposit d) =>
-        new DepositResponseDto(d.Id, d.Amount, d.InterestRate, d.TermInSeconds, d.StartDate, d.Profit, d.IsClosed);
+    private decimal CalculateProfit(decimal amount, float rate, int second) =>
+         amount * (decimal)(rate / 100) * second / 12m;
 
+    private DepositResponseDto MapToResponseDto(Deposit d) =>
+        new DepositResponseDto(d.Id, d.Amount, d.InterestRate, d.TermInSeconds ,d.StartDate, d.Profit, d.IsClosed);
+
+
+    // background method
     public async Task ProcessExpiredDeposits()
     {
         var now = DateTime.UtcNow;
 
-        var expired = await _context.Deposits
+        var expiredDeposits = await _context.Deposits
             .Include(d => d.User)
             .Where(d => !d.IsClosed && d.StartDate.AddSeconds(d.TermInSeconds) <= now)
             .ToListAsync();
 
-        foreach (var dep in expired)
+        foreach (var dep in expiredDeposits)
         {
             if (dep.User != null)
             {
-                decimal profit = dep.Amount * (decimal)(dep.InterestRate / 100);
-                dep.User.Balance += (dep.Amount + profit);
+                dep.User.Balance += dep.Amount + dep.Profit;
                 dep.IsClosed = true;
             }
         }
