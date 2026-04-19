@@ -16,3 +16,10 @@ public record UserResponseDtos
     string Email,
     decimal Balance
 );
+    
+public record AllUsersResponseDtos 
+(
+    Guid Id,
+    string FullName,
+    string Email
+);

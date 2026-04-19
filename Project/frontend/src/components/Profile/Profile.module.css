@@ -166,3 +166,58 @@
     border-radius: 6px;
     font-size: 0.8rem;
 }
+
+
+.transferForm {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 15px; 
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.inputGroup {
+    display: flex;
+    gap: 10px;
+    flex: 1; 
+}
+
+.transferForm h3 {
+    margin: 7px ;
+    font-size: 22px;
+    white-space: nowrap;
+}
+
+.select, 
+.transferForm input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+    outline: none;
+    box-sizing: border-box;
+    height: 40px;
+}
+
+.btnAction {
+    height: 40px;
+    padding: 0 25px;
+    background: #5c57af;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.btnAction:hover {
+    background: #4a4590;
+}
+

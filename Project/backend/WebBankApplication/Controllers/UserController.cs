@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using WebBankApplication.Repository;
@@ -32,13 +33,15 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
-    [HttpGet("balance")]
-    public async Task<IActionResult> GetBalance()
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllUsers()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
 
-        var balance = await _userRepo.GetBalanceAsync(Guid.Parse(userIdClaim.Value));
-        return Ok(new { balance });
+        var users = await _userRepo.GetAllUsersExceptCurrentAsync(Guid.Parse(userIdClaim.Value));
+        if (users == null || users.Count == 0) return NotFound();
+
+        return Ok(users);
     }
 }

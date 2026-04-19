@@ -12,8 +12,8 @@ using WebBankApplication.Data;
 namespace WebBankApplication.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260409190720_ProfitInDeposit")]
-    partial class ProfitInDeposit
+    [Migration("20260419164138_NewDb")]
+    partial class NewDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -96,6 +96,33 @@ namespace WebBankApplication.Migrations
                     b.ToTable("Loans");
                 });
 
+            modelBuilder.Entity("WebBankApplication.Models.Remittance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<decimal>("Amount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("RecipientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("SenderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipientId");
+
+                    b.HasIndex("SenderId");
+
+                    b.ToTable("Remittances");
+                });
+
             modelBuilder.Entity("WebBankApplication.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -107,17 +134,22 @@ namespace WebBankApplication.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("Users");
                 });
@@ -144,11 +176,34 @@ namespace WebBankApplication.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("WebBankApplication.Models.Remittance", b =>
+                {
+                    b.HasOne("WebBankApplication.Models.User", "Recipient")
+                        .WithMany("ReceivedRemittances")
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("WebBankApplication.Models.User", "Sender")
+                        .WithMany("SentRemittances")
+                        .HasForeignKey("SenderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Recipient");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("WebBankApplication.Models.User", b =>
                 {
                     b.Navigation("Deposits");
 
                     b.Navigation("Loans");
+
+                    b.Navigation("ReceivedRemittances");
+
+                    b.Navigation("SentRemittances");
                 });
 #pragma warning restore 612, 618
         }

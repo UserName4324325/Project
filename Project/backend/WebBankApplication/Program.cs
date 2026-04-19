@@ -21,6 +21,7 @@ builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<IDepositRepository, DepositRepository>();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRemittanceRepository, RemittanceRepository>();
 
 builder.Services.AddScoped<ITokenService, TokenService>();
 

@@ -23,13 +23,13 @@ export const userService = {
     return response.json();
   },
 
-  getBalance: async () => {
-    const response = await fetch(`${API_URL_USER}/balance`, {
+  getAllUsers: async () => {
+    const response = await fetch(`${API_URL_USER}/all`, {
       method: 'GET',
       headers: getHeaders()
     });
     
-    if (!response.ok) throw new Error('Ошибка загрузки баланса');
+    if (!response.ok) throw new Error('Ошибка загрузки пользователей');
     return response.json();
   }
 };

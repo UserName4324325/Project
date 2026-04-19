@@ -1,9 +1,12 @@
 ﻿using System;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebBankApplication.Models;
 
 public record Deposit
 {
+    [Key]
     public Guid Id { get; set; } = Guid.NewGuid();
     public decimal Amount { get; set; }
     public float InterestRate { get; set; }
@@ -15,5 +18,7 @@ public record Deposit
 
 
     public Guid UserId { get; set; }
-    public User? User { get; set; }
+
+    [ForeignKey(nameof(UserId))]
+    public virtual User? User { get; set; }
 }
