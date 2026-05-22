@@ -29,6 +29,8 @@ const Profile = () => {
         userService.getAllUsers()
       ]);
 
+      console.log("Депозиты:", dep);
+
       if (dep) setDeposits(dep);
       if (loan) setLoans(loan);
       if (hist) setRemittances(hist);
@@ -225,8 +227,10 @@ const Profile = () => {
               <div className={styles.inputGroup}>
                 <select className={styles.select} value={remittancesForm.recipientId} onChange={(e) => setRemittancesForm({ ...remittancesForm, recipientId: e.target.value })} required>
                   <option value="">Выберите получателя</option>
-                  {users.map(user => (
-                    <option key={user.id} value={user.id}>{user.fullName} ({user.email})</option>
+                  {users
+                    .filter(u => u.id !== userFromStorage.id)
+                    .map(u => (
+                    <option key={u.id} value={u.id}>{u.fullName} ({u.email})</option>
                   ))}
                 </select>
                 <input type="text" placeholder="Сумма" value={remittancesForm.amount} onChange={handleRemittanceAmountChange} required />

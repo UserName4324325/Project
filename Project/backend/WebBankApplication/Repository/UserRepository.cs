@@ -28,7 +28,7 @@ public class UserRepository : IUserRepository
     
     public async Task<List<AllUsersResponseDtos>> GetAllUsersExceptCurrentAsync(Guid CurrentUserId)
     {
-        var users = await _context.Users.Where(u => u.Id != CurrentUserId).ToListAsync();
+        var users = await _context.Users.ToListAsync();
         return users.Select(MapToAllUsersResponseDto).ToList()!;
     }
 
