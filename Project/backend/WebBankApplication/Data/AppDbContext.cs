@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Deposit> Deposits { get; set; }
     public DbSet<Loan> Loans { get; set; }
     public DbSet<Remittance> Remittances { get; set; }
+    public DbSet<UserRefreshToken> UserRefreshTokens { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

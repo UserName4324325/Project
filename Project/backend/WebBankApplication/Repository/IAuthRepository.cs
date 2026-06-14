@@ -9,5 +9,10 @@ public interface IAuthRepository
 {
     Task<User?> Register(User user, string password);
     Task<UserAuthResponseDto?> Login(string email, string password);
+
+    Task<UserRefreshToken?> GetRefreshTokenAsync(string token);
+    Task SaveRefreshTokenAsync(Guid userId, string token, DateTime expiryTime);
+    Task DeleteRefreshTokenAsync(string token);
+
     Task<bool> UserExists(string email);
 }

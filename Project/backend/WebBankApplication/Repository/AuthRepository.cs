@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Threading.Tasks;
 using WebBankApplication.Data;
 using WebBankApplication.DTOs;
@@ -38,15 +39,50 @@ public class AuthRepository : IAuthRepository
         if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             return null;
 
-        var token = _tokenService.CreateToken(user);
+        var tokenResult = _tokenService.CreateToken(user);
+
+        await SaveRefreshTokenAsync(user.Id, tokenResult.RefreshToken, tokenResult.RefreshTokenExpiryTime);
+
 
         return new UserAuthResponseDto
         (
             Id: user.Id,
-            Token: token,
+            Token: tokenResult.AccessToken,
+            RefreshToken: tokenResult.RefreshToken,
             FullName: user.FullName,
             Balance: user.Balance
         );
+    }
+
+    public async Task<UserRefreshToken?> GetRefreshTokenAsync(string token)
+    {
+        return await _context.UserRefreshTokens
+            .Include(u => u.User)
+            .FirstOrDefaultAsync(t => t.Token == token);
+    }
+
+    public async Task DeleteRefreshTokenAsync(string token)
+    {
+        var tokenRefresh = await _context.UserRefreshTokens.FirstOrDefaultAsync(t => t.Token == token);
+
+        if (tokenRefresh != null)
+        {
+            _context.UserRefreshTokens.Remove(tokenRefresh);
+            await _context.SaveChangesAsync();
+        }
+    }
+
+    public async Task SaveRefreshTokenAsync(Guid userId, string token, DateTime expiryTime)
+    {
+        var refreshToken = new UserRefreshToken
+        {
+            UserId = userId,
+            Token = token,
+            ExpiryTime = expiryTime
+        };
+
+        await _context.UserRefreshTokens.AddAsync(refreshToken);
+        await _context.SaveChangesAsync();
     }
 
     public async Task<bool> UserExists(string email) =>

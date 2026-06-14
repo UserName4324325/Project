@@ -19,7 +19,8 @@ public record UserLoginDto
 public record UserAuthResponseDto
 (
     Guid Id,
-    string Token, 
+    string Token,
+    string RefreshToken,
     string FullName,
     decimal Balance
 );

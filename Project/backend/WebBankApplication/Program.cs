@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
 using WebBankApplication.BackgroundServices;
 using WebBankApplication.Data;
 using WebBankApplication.Extensions;
@@ -14,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 // postgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
+
 
 
 // DI && Репозитории
