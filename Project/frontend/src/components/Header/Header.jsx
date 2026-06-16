@@ -40,7 +40,7 @@ const Header = () => {
 
               <button 
                 className={styles.btnLogin} 
-                onClick={() => { authService.logout(); window.location.reload(); }}
+                onClick={() => { authService.logout(); }}
               >
                 Выйти
               </button>

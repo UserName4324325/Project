@@ -1,62 +1,36 @@
-const API_URL_AUTH = `${import.meta.env.VITE_API_URL}/Auth`;
+import { apiClient } from './apiClient';
 
 
 export const authService = {
-
   async register(userData) {
-
-    const response = await fetch(`${API_URL_AUTH}/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(userData)
-    });
-
-    if (!response.ok) throw new Error('Ошибка регистрации');
-    
-    return response.json();
-  },
-
-  async getCurrentUser() {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
-
-    const response = await fetch(`${API_URL_AUTH}/me`, {
-      method: 'GET',
-      headers: { 
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json' 
-      }
-    });
-
-    if (!response.ok) {
-      if (response.status === 401) this.logout();
-      return null;
-    }
-
-    return await response.json();
+    return await apiClient.post('/auth/register', userData);
   },
 
   async login(credentials) {
-  const response = await fetch(`${API_URL_AUTH}/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(credentials)
-  });
-  
-  if (!response.ok) throw new Error('Неверный логин или пароль');
-  
-  const data = await response.json();
-  
-  if (data.token) {
-    localStorage.setItem('token', data.token);
-    localStorage.setItem('user', JSON.stringify(data)); 
-  }
-  return data;
+    const data = await apiClient.post('/auth/login', credentials);
+    
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify({
+        id: data.id,
+        fullName: data.fullName,
+        balance: data.balance
+      }));
+    }
+    console.log('Login ', data);
+    return data;
   },
 
-  logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+  async logout() {
+    try {
+      let result = await apiClient.post('/auth/logout');
+    } catch (e) {
+      console.warn('Сервер не смог корректно завершить сессию', e);
+    } finally {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      window.location.reload(); 
+    }
   },
 
   isAuthenticated() {

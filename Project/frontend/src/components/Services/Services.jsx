@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom';
 import { authService } from '../../services/authService';
 
 const servicesData = [
-  { icon: '↗', title: 'Вклады', desc: 'До 8% годовых', buttonText: 'Подробнее', path: '/vklady' },
-  { icon: '$', title: 'Кредиты', desc: 'От 5.9%', buttonText: 'Рассчитать', path: '/kredity' },
+  { icon: '↗', title: 'Вклады', desc: '4% годовых', buttonText: 'Подробнее', path: '/vklady' },
+  { icon: '$', title: 'Кредиты', desc: '36% годовых', buttonText: 'Рассчитать', path: '/kredity' },
   { icon: '👤', title: 'Кабинет', desc: 'Все счета онлайн', buttonText: 'Войти', path: '/login' },
 ];
 

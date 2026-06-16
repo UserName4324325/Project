@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using WebBankApplication.DTOs;
 using WebBankApplication.Repository;
+using WebBankApplication.TokenService;
 
 
 namespace WebBankApplication.Controllers;
@@ -15,10 +17,12 @@ namespace WebBankApplication.Controllers;
 public class UserController : ControllerBase
 {
     private readonly IUserRepository _userRepo;
+    private readonly ITokenService _tokenService;
 
-    public UserController(IUserRepository userRepo)
+    public UserController(IUserRepository userRepo, ITokenService tokenService)
     {
         _userRepo = userRepo;
+        _tokenService = tokenService;
     }
 
     [HttpGet]
@@ -43,5 +47,23 @@ public class UserController : ControllerBase
         if (users == null || users.Count == 0) return NotFound();
 
         return Ok(users);
+    }
+
+    [HttpPut("update")]
+    public async Task<IActionResult> UpdateUser([FromBody] UserUpdateDtos dto)
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (userIdClaim == null) return Unauthorized();
+        if (dto.Id != Guid.Parse(userIdClaim.Value)) return Forbid();
+
+
+        var user = await _userRepo.UpdateUserAsync(dto);
+        if (!user) return BadRequest("Не удалось обновить профиль. Проверьте пароли или данные.");
+
+        var updatedUser = await _userRepo.GetByIdAsync(dto.Id);
+        var newToken = _tokenService.CreateToken(updatedUser);
+
+        return Ok(new { message = "Профиль успешно обновлен", user = updatedUser });
     }
 }

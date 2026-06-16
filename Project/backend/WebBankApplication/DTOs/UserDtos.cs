@@ -2,12 +2,14 @@
 
 namespace WebBankApplication.DTOs;
 
-//public record UserUpdateDtos
-//(
-//    string FullName,
-//    string Email,
-//    string Password
-//);
+public record UserUpdateDtos
+(
+    Guid Id,
+    string FullName,
+    string Email,
+    string CurrentPassword,
+    string NewPassword
+);
 
 public record UserResponseDtos
 (

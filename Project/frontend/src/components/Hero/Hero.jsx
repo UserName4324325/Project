@@ -12,7 +12,7 @@ const Hero = () => {
           <span className={styles.highlight}>наших целей</span>
         </h1>
         <p className={styles.subtitle}>
-          Откройте вклад или получите кредит за 10 минут
+          Откройте вклад или получите кредит за 1 минуту
         </p>
         
         <div className={styles.actions}>

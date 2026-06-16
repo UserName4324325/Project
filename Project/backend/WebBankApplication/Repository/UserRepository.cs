@@ -1,4 +1,6 @@
 ﻿using Elastic.Clients.Elasticsearch;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -32,6 +34,39 @@ public class UserRepository : IUserRepository
         return users.Select(MapToAllUsersResponseDto).ToList()!;
     }
 
+    public async Task<bool> UpdateUserAsync(UserUpdateDtos dto)
+    {
+        var user = await _context.Users.FindAsync(dto.Id);
+        if (user == null) return false;
+
+        if (!string.IsNullOrEmpty(dto.NewPassword))
+        {
+            if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            {
+                return false;
+            }
+
+            if (BCrypt.Net.BCrypt.Verify(dto.NewPassword, user.PasswordHash))
+            {
+                return false;
+            }
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        }
+
+        user.FullName = dto.FullName;
+        user.Email = dto.Email;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
     private AllUsersResponseDtos? MapToAllUsersResponseDto(User? user) =>
         user == null ? null : new AllUsersResponseDtos(user.Id, user.FullName, user.Email);
     private UserResponseDtos? MapToUserResponseDto(User? user) =>
