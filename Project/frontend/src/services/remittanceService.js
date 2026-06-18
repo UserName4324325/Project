@@ -1,9 +1,9 @@
 import { apiClient } from './apiClient';
 
 export const remittanceService = {
-  async getHistory(userId) {
+  async getHistory() {
     try {
-      return await apiClient.get(`/remittance/history/${userId}`);
+      return await apiClient.get(`/remittance/history`);
     } catch (error) {
       throw new Error(error.message || "Ошибка загрузки истории");
     }
@@ -12,7 +12,7 @@ export const remittanceService = {
   async remittance(data) {
     try {
       await apiClient.post('/remittance/add', data);
-      
+
       return true;
     } catch (error) {
       throw new Error(error.message || "Ошибка перевода");

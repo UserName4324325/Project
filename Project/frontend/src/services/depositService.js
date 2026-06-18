@@ -9,9 +9,9 @@ export const depositService = {
     }
   },
 
-  async getUserDeposits(userId) {
+  async getUserDeposits() {
     try {
-      return await apiClient.get(`/deposit/user/${userId}`);
+      return await apiClient.get(`/deposit/user`);
     } catch (error) {
       throw new Error('Не удалось загрузить вклады');
     }

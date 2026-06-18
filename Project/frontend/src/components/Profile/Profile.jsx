@@ -8,12 +8,16 @@ import { remittanceService } from '../../services/remittanceService';
 const Profile = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
-  
+
   const [deposits, setDeposits] = useState([]);
   const [loans, setLoans] = useState([]);
   const [remittances, setRemittances] = useState([]);
   const [users, setUsers] = useState([]);
   const [balance, setBalance] = useState(0);
+
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const [remittancesForm, setRemittancesForm] = useState({ recipientId: '', amount: '' });
   const userFromStorage = useMemo(() => JSON.parse(localStorage.getItem('user') || '{}'), []);
@@ -22,10 +26,10 @@ const Profile = () => {
   const fetchAllData = useCallback(async () => {
     try {
       const [dep, loan, user, hist, allUsers] = await Promise.all([
-        depositService.getUserDeposits(userFromStorage.id),
-        loanService.getUserLoans(userFromStorage.id),
+        depositService.getUserDeposits(),
+        loanService.getUserLoans(),
         userService.getUser(),
-        remittanceService.getHistory(userFromStorage.id),
+        remittanceService.getHistory(),
         userService.getAllUsers()
       ]);
 
@@ -48,8 +52,8 @@ const Profile = () => {
   const fetchLightData = useCallback(async () => {
     try {
       const [dep, loan] = await Promise.all([
-        depositService.getUserDeposits(userFromStorage.id),
-        loanService.getUserLoans(userFromStorage.id),
+        depositService.getUserDeposits(),
+        loanService.getUserLoans(),
       ]);
       if (loan) setLoans(loan);
       if (dep) setDeposits(dep);
@@ -58,6 +62,23 @@ const Profile = () => {
     }
   }, [userFromStorage.id]);
 
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      setSearchResults([]);
+      return;
+    }
+
+    const delayDebounceId = setTimeout(async () => {
+      try {
+        const results = await userService.searchUsers(searchQuery);
+        setSearchResults(results || []);
+      } catch (err) {
+        console.error("Ошибка поиска пользователей через Elastic:", err);
+      }
+    }, 300);
+
+    return () => clearTimeout(delayDebounceId);
+  }, [searchQuery]);
 
   const formatDisplay = (val) => {
     if (!val && val !== 0) return "";
@@ -86,8 +107,8 @@ const Profile = () => {
 
     const numericValue = parseFloat(raw) || 0;
     if (numericValue > balance) {
-        setRemittancesForm(prev => ({ ...prev, amount: formatDisplay(balance) }));
-        return;
+      setRemittancesForm(prev => ({ ...prev, amount: formatDisplay(balance) }));
+      return;
     }
 
     if (inputVal.endsWith(",") || inputVal.endsWith(".")) {
@@ -95,6 +116,15 @@ const Profile = () => {
     } else {
       setRemittancesForm(prev => ({ ...prev, amount: formatDisplay(raw) }));
     }
+  };
+
+  const selectRecipient = (user) => {
+    setRemittancesForm(prev => ({
+      ...prev,
+      recipientId: user.id || user.Id || user.id_
+    }));
+    setSearchQuery(user.fullName || user.FullName);
+    setShowSuggestions(false);
   };
 
   const handleRemittance = async (e) => {
@@ -126,136 +156,189 @@ const Profile = () => {
     const hasActiveDeposits = deposits.some(d => !(d.isClosed || d.IsClosed));
 
     if (!hasActiveLoans && !hasActiveDeposits) return;
-    
+
 
     const interval = setInterval(fetchLightData, 1000);
     return () => clearInterval(interval);
   }, [loans, deposits, fetchLightData]);
 
   return (
-    <div className={styles.profileContainer}>
-      <section className={styles.header}>
-        <h1>Личный кабинет</h1>
-        <p className={styles.welcome}>Рады видеть вас, <span>{userFromStorage.fullName}</span>!</p>
-      </section>
+      <div className={styles.profileContainer}>
+        <section className={styles.header}>
+          <h1>Личный кабинет</h1>
+          <p className={styles.welcome}>Рады видеть вас, <span>{userFromStorage.fullName}</span>!</p>
+        </section>
 
-      <div className={styles.balanceCard}>
-        <div className={styles.balanceInfo}>
-          <span className={styles.label}>Ваш общий баланс</span>
-          <h2 className={styles.amount}>{balance.toLocaleString()} ₽</h2>
+        <div className={styles.balanceCard}>
+          <div className={styles.balanceInfo}>
+            <span className={styles.label}>Ваш общий баланс</span>
+            <h2 className={styles.amount}>{balance.toLocaleString()} ₽</h2>
+          </div>
+        </div>
+
+        <nav className={styles.tabs}>
+          {['overview', 'deposits', 'loans', 'remittances'].map(tab => (
+              <button
+                  key={tab}
+                  className={activeTab === tab ? styles.activeTab : ''}
+                  onClick={() => setActiveTab(tab)}
+              >
+                {tab === 'overview' ? 'Обзор' : tab === 'deposits' ? 'Вклады' : tab === 'loans' ? 'Кредиты' : 'Переводы'}
+              </button>
+          ))}
+        </nav>
+
+        <div className={styles.content}>
+          {activeTab === 'overview' && (
+              <div className={styles.grid}>
+                <div className={styles.statsCard}>
+                  <h3>Активные вклады</h3>
+                  <p className={styles.statsNumber}>{deposits.filter(d => !(d.isClosed || d.IsClosed)).length}</p>
+                </div>
+                <div className={styles.statsCard}>
+                  <h3>Активные кредиты</h3>
+                  <p className={styles.statsNumber}>{loans.filter(l => !(l.isPaid || l.IsPaid)).length}</p>
+                </div>
+              </div>
+          )}
+
+          {activeTab === 'deposits' && (
+              <div className={styles.depositsSection}>
+                {loading ? <div className={styles.emptyState}>Загрузка...</div> : deposits.length > 0 ? (
+                    <div className={styles.tableWrapper}>
+                      <table className={styles.depositTable}>
+                        <thead><tr><th>Сумма</th><th>Прибыль</th><th>Итого</th><th>Дата открытия</th><th>Срок</th><th>Статус</th></tr></thead>
+                        <tbody>
+                        {deposits.map((dep) => (
+                            <tr key={dep.id || dep.Id}>
+                              <td>{(dep.amount || 0).toLocaleString()} ₽</td>
+                              <td className={styles.profitText}>+{(dep.profit || 0).toLocaleString()} ₽</td>
+                              <td className={styles.totalText}>{((dep.amount || 0) + (dep.profit || 0)).toLocaleString()} ₽</td>
+                              <td>{dep.startDate ? new Date(dep.startDate).toLocaleString('ru-RU') : '—'}</td>
+                              <td>{(dep.term || dep.TermInSeconds || dep.termInSeconds || 0).toLocaleString()} сек.</td>
+                              <td><span className={dep.isClosed ? styles.statusClosed : styles.statusActive}>{dep.isClosed ? 'Завершен' : 'В работе'}</span></td>
+                            </tr>
+                        ))}
+                        </tbody>
+                      </table>
+                    </div>
+                ) : <div className={styles.emptyState}>Нет вкладов.</div>}
+              </div>
+          )}
+
+          {activeTab === 'loans' && (
+              <div className={styles.depositsSection}>
+                {loans.length > 0 ? (
+                    <div className={styles.tableWrapper}>
+                      <table className={styles.depositTable}>
+                        <thead><tr><th>Общий долг</th><th>Осталось</th><th>Платеж/сек</th><th>Дата</th><th>Срок</th><th>Статус</th></tr></thead>
+                        <tbody>
+                        {loans.map(loan => (
+                            <tr key={loan.id || loan.Id}>
+                              <td>{(loan.totalAmount || loan.TotalAmount || 0).toLocaleString()} ₽</td>
+                              <td style={{ fontWeight: 'bold', color: '#e74c3c' }}>{(loan.remainingAmount || loan.RemainingAmount || 0).toLocaleString()} ₽</td>
+                              <td>{(loan.perSecondPayment || loan.PerSecondPayment || 0).toFixed(2)} ₽</td>
+                              <td>{loan.startDate ? new Date(loan.startDate).toLocaleString('ru-RU') : '—'}</td>
+                              <td>{(loan.term || loan.TermInSeconds || loan.termInSeconds || 0).toLocaleString()} сек.</td>
+                              <td><span className={(loan.isPaid || loan.IsPaid) ? styles.statusClosed : styles.statusActive}>{(loan.isPaid || loan.IsPaid) ? 'Погашен' : 'Выплачивается'}</span></td>
+                            </tr>
+                        ))}
+                        </tbody>
+                      </table>
+                    </div>
+                ) : <div className={styles.emptyState}>Нет активных кредитов.</div>}
+              </div>
+          )}
+
+          {activeTab === 'remittances' && (
+              <div className={styles.depositsSection}>
+                <form onSubmit={handleRemittance} className={styles.transferForm} autoComplete="off">
+                  <h3>Отправить деньги</h3>
+                  <div className={styles.inputGroup}>
+
+                    <div style={{ position: 'relative', width: '100%' }}>
+                      <input
+                          type="text"
+                          placeholder="Введите имя или email получателя..."
+                          value={searchQuery}
+                          onChange={(e) => {
+                            setSearchQuery(e.target.value);
+                            setShowSuggestions(true);
+                            if(remittancesForm.recipientId) {
+                              setRemittancesForm(prev => ({...prev, recipientId: '', recipientName: ''}));
+                            }
+                          }}
+                          onFocus={() => setShowSuggestions(true)}
+                          onBlur={() => setTimeout(() => setShowSuggestions(false), 200)} // Задержка, чтобы успел сработать клик по элементу
+                          required
+                      />
+
+                      {showSuggestions && searchResults.length > 0 && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            left: 0,
+                            right: 0,
+                            backgroundColor: '#fff',
+                            border: '1px solid #ccc',
+                            borderRadius: '4px',
+                            maxHeight: '200px',
+                            overflowY: 'auto',
+                            zIndex: 1000,
+                            boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                          }}>
+                            {searchResults.map(u => (
+                                <div
+                                    key={u.id || u.Id}
+                                    onClick={() => selectRecipient(u)}
+                                    style={{
+                                      padding: '10px',
+                                      cursor: 'pointer',
+                                      borderBottom: '1px solid #f0f0f0',
+                                      color: '#333'
+                                    }}
+                                    onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                    onMouseLeave={(e) => e.target.style.backgroundColor = '#fff'}
+                                >
+                                  <strong>{u.fullName || u.FullName}</strong> <span style={{color: '#888', fontSize: '0.85em'}}>({u.email || u.Email})</span>
+                                </div>
+                            ))}
+                          </div>
+                      )}
+
+                      {showSuggestions && searchQuery.trim() && searchResults.length === 0 && (
+                          <div style={{
+                            position: 'absolute', top: '100%', left: 0, right: 0,
+                            backgroundColor: '#fff', border: '1px solid #ccc', padding: '10px', color: '#999', zIndex: 1000
+                          }}>
+                            Пользователи не найдены
+                          </div>
+                      )}
+                    </div>
+
+                    <input type="text" placeholder="Сумма" value={remittancesForm.amount} onChange={handleRemittanceAmountChange} required />
+                  </div>
+                  <button type="submit" className={styles.btnAction}>Перевести</button>
+                </form>
+
+                <div className={styles.tableWrapper}>
+                  <table className={styles.depositTable}>
+                    <thead><tr><th>Контрагент</th><th>Дата</th><th>Сумма</th></tr></thead>
+                    <tbody>
+                    {remittances.map(r => (
+                        <tr key={r.id}>
+                          <td>{r.counterpartyFullName}</td>
+                          <td>{r.date ? new Date(r.date).toLocaleString('ru-RU') : '—'}</td>
+                          <td style={{ color: r.isIncoming ? '#27ae60' : '#e74c3c' }}>{r.isIncoming ? '+' : '-'}{r.amount.toLocaleString()} ₽</td>
+                        </tr>
+                    ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+          )}
         </div>
       </div>
-
-      <nav className={styles.tabs}>
-        {['overview', 'deposits', 'loans', 'remittances'].map(tab => (
-          <button 
-            key={tab}
-            className={activeTab === tab ? styles.activeTab : ''} 
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === 'overview' ? 'Обзор' : tab === 'deposits' ? 'Вклады' : tab === 'loans' ? 'Кредиты' : 'Переводы'}
-          </button>
-        ))}
-      </nav>
-
-      <div className={styles.content}>
-        {activeTab === 'overview' && (
-          <div className={styles.grid}>
-            <div className={styles.statsCard}>
-              <h3>Активные вклады</h3>
-              <p className={styles.statsNumber}>{deposits.filter(d => !(d.isClosed || d.IsClosed)).length}</p>
-            </div>
-            <div className={styles.statsCard}>
-              <h3>Активные кредиты</h3>
-              <p className={styles.statsNumber}>{loans.filter(l => !(l.isPaid || l.IsPaid)).length}</p>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'deposits' && (
-          <div className={styles.depositsSection}>
-            {loading ? <div className={styles.emptyState}>Загрузка...</div> : deposits.length > 0 ? (
-              <div className={styles.tableWrapper}>
-                <table className={styles.depositTable}>
-                  <thead><tr><th>Сумма</th><th>Прибыль</th><th>Итого</th><th>Дата открытия</th><th>Срок</th><th>Статус</th></tr></thead>
-                  <tbody>
-                    {deposits.map((dep) => (
-                      <tr key={dep.id || dep.Id}>
-                        <td>{(dep.amount || 0).toLocaleString()} ₽</td>
-                        <td className={styles.profitText}>+{(dep.profit || 0).toLocaleString()} ₽</td>
-                        <td className={styles.totalText}>{((dep.amount || 0) + (dep.profit || 0)).toLocaleString()} ₽</td>
-                        <td>{dep.startDate ? new Date(dep.startDate).toLocaleString('ru-RU') : '—'}</td>
-                        <td>{(dep.term || dep.TermInSeconds || dep.termInSeconds || 0).toLocaleString()} сек.</td>
-                        <td><span className={dep.isClosed ? styles.statusClosed : styles.statusActive}>{dep.isClosed ? 'Завершен' : 'В работе'}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : <div className={styles.emptyState}>Нет вкладов.</div>}
-          </div>
-        )}
-
-        {activeTab === 'loans' && (
-          <div className={styles.depositsSection}>
-            {loans.length > 0 ? (
-              <div className={styles.tableWrapper}>
-                <table className={styles.depositTable}>
-                  <thead><tr><th>Общий долг</th><th>Осталось</th><th>Платеж/сек</th><th>Дата</th><th>Срок</th><th>Статус</th></tr></thead>
-                  <tbody>
-                    {loans.map(loan => (
-                      <tr key={loan.id || loan.Id}>
-                        <td>{(loan.totalAmount || loan.TotalAmount || 0).toLocaleString()} ₽</td>
-                        <td style={{ fontWeight: 'bold', color: '#e74c3c' }}>{(loan.remainingAmount || loan.RemainingAmount || 0).toLocaleString()} ₽</td>
-                        <td>{(loan.perSecondPayment || loan.PerSecondPayment || 0).toFixed(2)} ₽</td>
-                        <td>{loan.startDate ? new Date(loan.startDate).toLocaleString('ru-RU') : '—'}</td>
-                        <td>{(loan.term || loan.TermInSeconds || loan.termInSeconds || 0).toLocaleString()} сек.</td>
-                        <td><span className={(loan.isPaid || loan.IsPaid) ? styles.statusClosed : styles.statusActive}>{(loan.isPaid || loan.IsPaid) ? 'Погашен' : 'Выплачивается'}</span></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : <div className={styles.emptyState}>Нет активных кредитов.</div>}
-          </div>
-        )}
-
-        {activeTab === 'remittances' && (
-          <div className={styles.depositsSection}>
-            <form onSubmit={handleRemittance} className={styles.transferForm}>
-              <h3>Отправить деньги</h3>
-              <div className={styles.inputGroup}>
-                <select className={styles.select} value={remittancesForm.recipientId} onChange={(e) => setRemittancesForm({ ...remittancesForm, recipientId: e.target.value })} required>
-                  <option value="">Выберите получателя</option>
-                  {users
-                    .filter(u => u.id !== userFromStorage.id)
-                    .map(u => (
-                    <option key={u.id} value={u.id}>{u.fullName} ({u.email})</option>
-                  ))}
-                </select>
-                <input type="text" placeholder="Сумма" value={remittancesForm.amount} onChange={handleRemittanceAmountChange} required />
-              </div>
-              <button type="submit" className={styles.btnAction}>Перевести</button>
-            </form>
-
-            <div className={styles.tableWrapper}>
-              <table className={styles.depositTable}>
-                <thead><tr><th>Контрагент</th><th>Дата</th><th>Сумма</th></tr></thead>
-                <tbody>
-                  {remittances.map(r => (
-                    <tr key={r.id}>
-                      <td>{r.counterpartyFullName}</td>
-                      <td>{r.date ? new Date(r.date).toLocaleString('ru-RU') : '—'}</td>
-                      <td style={{ color: r.isIncoming ? '#27ae60' : '#e74c3c' }}>{r.isIncoming ? '+' : '-'}{r.amount.toLocaleString()} ₽</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
   );
 };
 

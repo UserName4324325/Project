@@ -9,9 +9,9 @@ export const loanService = {
     }
   },
 
-  async getUserLoans(userId) {
+  async getUserLoans() {
     try {
-      return await apiClient.get(`/loan/user/${userId}`);
+      return await apiClient.get(`/loan/user`);
     } catch (error) {
       throw new Error('Не удалось загрузить кредиты');
     }

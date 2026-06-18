@@ -17,6 +17,25 @@ services:
       timeout: 5s
       retries: 5
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.4.2
+    container_name: bank_elastic
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   backend:
     build:
       context: ./backend/WebBankApplication
@@ -27,11 +46,14 @@ services:
       - ASPNETCORE_URLS=http://+:5000
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__Postgres=Host=db;Port=5432;Database=BankDb;Username=postgres;Password=qwerty911
+      - Elasticsearch__Url=http://elasticsearch:9200
       - Jwt__Key=Vash_Ochen_Dlinniy_I_Sekretniy_Klyuch_123!
     ports:
       - "5000:5000"
     depends_on:
       db:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
 
   frontend:
@@ -47,3 +69,4 @@ services:
 
 volumes:
   postgres_data:
+  elastic_data:
