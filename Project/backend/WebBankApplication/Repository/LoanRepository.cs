@@ -18,26 +18,19 @@ public class LoanRepository : ILoanRepository
     {
         _context = context;
     }
-
+    
     public async Task<ResponseLoanDto> AddLoan(AddLoanDto dto) 
     {
         var user = await _context.Users.FindAsync(dto.UserId);
 
         if (user == null) throw new Exception("Пользователь не найден");
-
-        // АННУИТЕТНАЯ МАТЕМАТИКА
-        decimal monthlyRate = (decimal)dto.InterestRate / 12m / 100m;
-        decimal pow = (decimal)Math.Pow(1 + (double)monthlyRate, dto.TermInSeconds);
-
-        decimal paymentPerSecond = dto.Amount * (monthlyRate * pow) / (pow - 1);
-
-        decimal totalToReturn = paymentPerSecond * dto.TermInSeconds;
-        //
+        
+        (decimal paymentPerSecond, decimal totalAmount) = CalculateAnnuityMath(dto.Amount, (decimal)dto.InterestRate, dto.TermInSeconds);
 
         var loan = new Loan
         {
-            TotalAmount = totalToReturn,
-            RemainingAmount = totalToReturn,
+            TotalAmount = totalAmount,
+            RemainingAmount = totalAmount,
             InterestRate = dto.InterestRate,
             TermInSeconds = dto.TermInSeconds,
             PerSecondPayment = paymentPerSecond,
@@ -54,7 +47,31 @@ public class LoanRepository : ILoanRepository
     }
     private ResponseLoanDto MapToResponseLoanDto(Loan l) =>
         new ResponseLoanDto(l.Id, l.TermInSeconds, l.TotalAmount, l.RemainingAmount, l.InterestRate, l.StartDate, l.PerSecondPayment, l.IsPaid);
+    
+    private (decimal paymentPerSecond, decimal totalAmount) CalculateAnnuityMath(decimal amount, decimal interestRate, int term) 
+    {
+        decimal monthlyRate = interestRate / 12m / 100m;
+        
+        decimal pow = RaiseToDegree(1m + monthlyRate, term);
 
+        decimal paymentPerSecond = amount * monthlyRate * pow / (pow - 1m);
+
+        decimal totalAmount = paymentPerSecond * term;
+        
+        return (paymentPerSecond, totalAmount);
+    }
+    
+    private decimal RaiseToDegree(decimal value, int degree)
+    {
+        decimal result = value;
+        
+        for (int i = 0; i < degree; i++)
+        {
+            result *= value;
+        }
+        return result;
+    }
+    
     public async Task<List<ResponseLoanDto>> GetLoans(Guid userId)
     {
         return await _context.Loans

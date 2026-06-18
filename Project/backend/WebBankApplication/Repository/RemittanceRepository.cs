@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using WebBankApplication.Data;
 using WebBankApplication.DTOs;
 using WebBankApplication.Models;
-using WebBankApplication.Repository;
+
+
+namespace WebBankApplication.Repository;
 
 public class RemittanceRepository : IRemittanceRepository
 {

@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using WebBankApplication.Data;
 
 namespace WebBankApplication.Extensions;
@@ -16,6 +17,8 @@ public static class ElasticsearchExtensions
         using var scope = app.ApplicationServices.CreateScope();
         var services = scope.ServiceProvider;
 
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        
         try
         {
             var dbContext = services.GetRequiredService<AppDbContext>();
@@ -42,18 +45,18 @@ public static class ElasticsearchExtensions
 
                     if (!bulkResponse.IsValidResponse)
                     {
-                        Console.WriteLine($"[Elasticsearch] Ошибка массовой индексации: {bulkResponse.DebugInformation}");
+                        logger.LogError($"[Elasticsearch] Ошибка массовой индексации: {bulkResponse.DebugInformation}");
                     }
                     else
                     {
-                        Console.WriteLine($"[Elasticsearch] Успешно перенесено {documentsToIndex.Count} пользователей при первом запуске.");
+                        logger.LogInformation($"[Elasticsearch] Успешно перенесено {documentsToIndex.Count} пользователей при первом запуске.");
                     }
                 }
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[Elasticsearch] Не удалось выполнить первичную синхронизацию: {ex.Message}");
+            logger.LogError($"[Elasticsearch] Не удалось выполнить первичную синхронизацию: {ex.Message}");
         }
     }
 }

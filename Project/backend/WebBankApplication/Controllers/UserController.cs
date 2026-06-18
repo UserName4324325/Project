@@ -33,7 +33,8 @@ public class UserController : ControllerBase
 
         return Ok(user);
     }
-
+    
+    [HttpGet("search")]
     public async Task<IActionResult> SearchUsers([FromQuery] string query)
     {
         var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier); 
@@ -46,13 +47,12 @@ public class UserController : ControllerBase
 
     [HttpGet("all")]
     public async Task<IActionResult> GetAllUsers()
-    {var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
+
+        var users = await _userRepo.GetAllUsersAsync();
         
-
-        var users = await _userRepo.GetAllUsersAsync(Guid.Parse(userIdClaim.Value));
-        if (users == null || users.Count == 0) return NotFound();
-
         return Ok(users);
     }
 }

@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 using WebBankApplication.DTOs;
 using WebBankApplication.Repository;
 
-namespace WebBankApplication.Controllers;
 
+namespace WebBankApplication.Controllers;
 
 [ApiController]
 [Route("api/deposit")]

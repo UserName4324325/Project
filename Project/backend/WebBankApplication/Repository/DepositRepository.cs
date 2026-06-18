@@ -32,7 +32,6 @@ public class DepositRepository : IDepositRepository
             InterestRate = dto.InterestRate,
             TermInSeconds = dto.TermInSeconds,
             Profit = CalculateProfit(dto.Amount, dto.InterestRate, dto.TermInSeconds),
-
             UserId = dto.UserId
         };
 
@@ -74,11 +73,9 @@ public class DepositRepository : IDepositRepository
     // background method
     public async Task ProcessExpiredDeposits()
     {
-        var now = DateTime.UtcNow;
-
         var expiredDeposits = await _context.Deposits
             .Include(d => d.User)
-            .Where(d => !d.IsClosed && d.StartDate.AddSeconds(d.TermInSeconds) <= now)
+            .Where(d => !d.IsClosed && d.StartDate.AddSeconds(d.TermInSeconds) <= DateTime.UtcNow)
             .ToListAsync();
 
         foreach (var dep in expiredDeposits)

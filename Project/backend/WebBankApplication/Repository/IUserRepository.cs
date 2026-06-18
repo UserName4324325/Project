@@ -8,6 +8,6 @@ namespace WebBankApplication.Repository;
 public interface IUserRepository
 {
     Task<UserResponseDtos?> GetByIdAsync(Guid id);
-    Task<List<AllUsersResponseDtos>> GetAllUsersAsync(Guid CurrentUserId);
-    Task<List<AllUsersResponseDtos>> SearchUsersAsync(string query, Guid currentUserId);
+    Task<List<UsersResponseDtos>> GetAllUsersAsync();
+    Task<List<UsersResponseDtos>> SearchUsersAsync(string query, Guid currentUserId);
 }

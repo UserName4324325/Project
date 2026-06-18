@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using WebBankApplication.Data;
 using WebBankApplication.DTOs;
 using WebBankApplication.Models;
@@ -17,10 +18,12 @@ public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _context;
     private readonly ElasticsearchClient _elasticClient;
-    public UserRepository(AppDbContext context, ElasticsearchClient elasticsearchClient)
+    private readonly ILogger<UserRepository> _logger;
+    public UserRepository(AppDbContext context, ElasticsearchClient elasticsearchClient,  ILogger<UserRepository> logger)
     {
         _context = context;
         _elasticClient = elasticsearchClient;
+        _logger = logger;
     }
 
     public async Task<UserResponseDtos?> GetByIdAsync(Guid id)
@@ -32,23 +35,22 @@ public class UserRepository : IUserRepository
     private UserResponseDtos? MapToUserResponseDto(User? user) =>
         user == null ? null : new UserResponseDtos(user.Id, user.FullName, user.Email, user.Balance);
     
-    public async Task<List<AllUsersResponseDtos>> GetAllUsersAsync(Guid CurrentUserId)
+    public async Task<List<UsersResponseDtos>> GetAllUsersAsync()
     {
         return await _context.Users.Select(AsAllUsersResponseDtos).ToListAsync();
     }
 
-    private static readonly Expression<Func<User, AllUsersResponseDtos>> AsAllUsersResponseDtos = u =>
-    new AllUsersResponseDtos
+    private static readonly Expression<Func<User, UsersResponseDtos>> AsAllUsersResponseDtos = u =>
+    new UsersResponseDtos
     (
         u.Id,
         u.FullName,
         u.Email
     );
-
-    // в разработке
-    public async Task<List<AllUsersResponseDtos>> SearchUsersAsync(string query, Guid currentUserId)
+    
+    public async Task<List<UsersResponseDtos>> SearchUsersAsync(string query, Guid currentUserId)
     {        
-        if (string.IsNullOrWhiteSpace(query)) return new List<AllUsersResponseDtos>();
+        if (string.IsNullOrWhiteSpace(query)) return new List<UsersResponseDtos>();
 
         var searchResponse = await _elasticClient.SearchAsync<User>(s => s
             .Indices("users")
@@ -62,7 +64,7 @@ public class UserRepository : IUserRepository
                         )
                     )
                     .MustNot(mn => mn
-                        .Term(t => t.Field("id").Value(FieldValue.String(currentUserId.ToString())))
+                        .Term(t => t.Field("id.keyword").Value(FieldValue.String(currentUserId.ToString())))
                     )
                 )
             )
@@ -71,14 +73,14 @@ public class UserRepository : IUserRepository
 
         if (!searchResponse.IsValidResponse)
         {
-            Console.WriteLine($"[Elasticsearch Error]: {searchResponse.DebugInformation}");
-            return new List<AllUsersResponseDtos>();
+            _logger.LogError($"[Elasticsearch Error]: {searchResponse.DebugInformation}");
+            return new List<UsersResponseDtos>();
         }
 
 
         return searchResponse.Documents.Select(MapToResponseAllUsersDto).ToList();
     }
 
-    private AllUsersResponseDtos MapToResponseAllUsersDto(User u) =>
-        new AllUsersResponseDtos(u.Id, u.FullName, u.Email);
+    private UsersResponseDtos MapToResponseAllUsersDto(User u) =>
+        new UsersResponseDtos(u.Id, u.FullName, u.Email);
 }

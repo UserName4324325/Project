@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 using WebBankApplication.DTOs;
 using WebBankApplication.Repository;
 
+
+
+namespace WebBankApplication.Controllers;
+
 [Authorize]
 [ApiController]
 [Route("api/remittance")]
@@ -24,11 +28,6 @@ public class RemittanceController : ControllerBase
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
-
-        // переделать проверку 
-        if (Guid.Parse(userIdClaim.Value) != dto.SenderId ||
-            Guid.Parse(userIdClaim.Value) == dto.RecipientId) 
-            return BadRequest();
 
         var result = await _repository.AddRemittanceAsync(dto);
         if (!result) return BadRequest("Ошибка транзакции.");

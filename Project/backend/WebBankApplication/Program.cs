@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Linq;
 using WebBankApplication.BackgroundServices;
 using WebBankApplication.Data;
 using WebBankApplication.Extensions;

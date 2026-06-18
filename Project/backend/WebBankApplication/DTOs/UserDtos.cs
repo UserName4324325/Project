@@ -4,7 +4,6 @@ namespace WebBankApplication.DTOs;
 
 public record UserUpdateDtos
 (
-    Guid Id,
     string FullName,
     string Email,
     string CurrentPassword,
@@ -19,7 +18,7 @@ public record UserResponseDtos
     decimal Balance
 );
     
-public record AllUsersResponseDtos 
+public record UsersResponseDtos 
 (
     Guid Id,
     string FullName,
