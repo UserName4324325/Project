@@ -34,7 +34,6 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
-    [HttpGet("search")]
     public async Task<IActionResult> SearchUsers([FromQuery] string query)
     {
         var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier); 
