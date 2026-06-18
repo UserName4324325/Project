@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using WebBankApplication.DTOs;
 using WebBankApplication.Repository;
@@ -9,23 +10,23 @@ namespace WebBankApplication.Controllers;
 
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/deposit")]
 [Authorize]
-public class DepositsController : ControllerBase
+public class DepositController : ControllerBase
 {
     private readonly IDepositRepository _depositRepo;
 
-    public DepositsController(IDepositRepository depositRepo)
+    public DepositController(IDepositRepository depositRepo)
     {
         _depositRepo = depositRepo;
     }
 
-    [HttpPost("open")]
-    public async Task<IActionResult> OpenDeposit([FromBody] OpenDepositDto dto)
+    [HttpPost("add")]
+    public async Task<IActionResult> AddDeposit([FromBody] AddDepositDto dto)
     {
         try
         {
-            var result = await _depositRepo.OpenDeposit(dto);
+            var result = await _depositRepo.AddDeposit(dto);
             return Ok(result);
         }
         catch (Exception ex)
@@ -34,10 +35,13 @@ public class DepositsController : ControllerBase
         }
     }
 
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetUserDeposits(Guid userId)
+    [HttpGet("user")]
+    public async Task<IActionResult> GetDeposits()
     {
-        var deposits = await _depositRepo.GetUserDeposits(userId);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var deposits = await _depositRepo.GetDeposits(Guid.Parse(userIdClaim.Value));
         return Ok(deposits);
     }
 }

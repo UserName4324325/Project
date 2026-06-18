@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using WebBankApplication.Data;
 using WebBankApplication.DTOs;
@@ -18,21 +19,19 @@ public class DepositRepository : IDepositRepository
         _context = context;
     }
 
-    public async Task<DepositResponseDto> OpenDeposit(OpenDepositDto dto)
+    public async Task<ResponseDepositDto> AddDeposit(AddDepositDto dto)
     {
         var user = await _context.Users.FindAsync(dto.UserId);
 
         if (user == null || user.Balance < dto.Amount)
             throw new Exception("Недостаточно средств или пользователь не найден");
 
-        decimal profit = CalculateProfit(dto.Amount, dto.InterestRate, dto.TermInSeconds);
-
         var deposit = new Deposit
         {
             Amount = dto.Amount,
             InterestRate = dto.InterestRate,
             TermInSeconds = dto.TermInSeconds,
-            Profit = profit,
+            Profit = CalculateProfit(dto.Amount, dto.InterestRate, dto.TermInSeconds),
 
             UserId = dto.UserId
         };
@@ -42,24 +41,34 @@ public class DepositRepository : IDepositRepository
         await _context.Deposits.AddAsync(deposit);
         await _context.SaveChangesAsync();
 
-        return MapToResponseDto(deposit);
+        return MapToResponseDepositDto(deposit);
     }
-
-    public async Task<List<DepositResponseDto>> GetUserDeposits(Guid userId)
-    {
-        var deposits = await _context.Deposits
-            .Where(d => d.UserId == userId)
-            .OrderByDescending(d => d.StartDate)
-            .ToListAsync();
-
-        return deposits.Select(MapToResponseDto).ToList();
-    }
-
     private decimal CalculateProfit(decimal amount, float rate, int second) =>
          amount * (decimal)(rate / 100) * second / 12m;
+    private ResponseDepositDto MapToResponseDepositDto(Deposit d) =>
+        new ResponseDepositDto(d.Id, d.Amount, d.InterestRate, d.TermInSeconds ,d.StartDate, d.Profit, d.IsClosed);
 
-    private DepositResponseDto MapToResponseDto(Deposit d) =>
-        new DepositResponseDto(d.Id, d.Amount, d.InterestRate, d.TermInSeconds ,d.StartDate, d.Profit, d.IsClosed);
+    public async Task<List<ResponseDepositDto>> GetDeposits(Guid userId)
+    {
+        return await _context.Deposits
+            .Where(d => d.UserId == userId)
+            .OrderByDescending(d => d.StartDate)
+            .Select(AsResponseDepositDto)
+            .ToListAsync();
+
+    }
+
+    private static readonly Expression<Func<Deposit, ResponseDepositDto>> AsResponseDepositDto = l =>
+    new ResponseDepositDto
+    (
+        l.Id, 
+        l.Amount,
+        l.InterestRate,
+        l.TermInSeconds, 
+        l.StartDate, 
+        l.Profit,
+        l.IsClosed
+    );
 
 
     // background method

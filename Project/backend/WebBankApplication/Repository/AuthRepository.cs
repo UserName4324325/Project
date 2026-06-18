@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Elastic.Clients.Elasticsearch;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Threading.Tasks;
 using WebBankApplication.Data;
@@ -11,14 +12,16 @@ namespace WebBankApplication.Repository;
 public class AuthRepository : IAuthRepository
 {
     private readonly AppDbContext _context;
+    private readonly ElasticsearchClient _elasticClient;
     private readonly ITokenService _tokenService;
 
     private const decimal InitialUserBalance = 100_000m;
 
-    public AuthRepository(AppDbContext context, ITokenService tokenService)
+    public AuthRepository(AppDbContext context, ITokenService tokenService, ElasticsearchClient elasticsearchClient)
     {
         _context = context;
         _tokenService = tokenService;
+        _elasticClient = elasticsearchClient;
     }
 
     public async Task<User?> Register(User user, string password)
@@ -28,6 +31,14 @@ public class AuthRepository : IAuthRepository
 
         await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
+
+        // add in Elasticsearch
+        await _elasticClient.IndexAsync(new
+        {
+            user.Id,
+            user.FullName,
+            user.Email
+        }, i => i.Index("users"));
 
         return user;
     }
@@ -44,15 +55,11 @@ public class AuthRepository : IAuthRepository
         await SaveRefreshTokenAsync(user.Id, tokenResult.RefreshToken, tokenResult.RefreshTokenExpiryTime);
 
 
-        return new UserAuthResponseDto
-        (
-            Id: user.Id,
-            Token: tokenResult.AccessToken,
-            RefreshToken: tokenResult.RefreshToken,
-            FullName: user.FullName,
-            Balance: user.Balance
-        );
+        return MapToUserAuthResponseDto(user, tokenResult);
     }
+
+    private UserAuthResponseDto MapToUserAuthResponseDto(User user, TokenResult token) =>
+        new UserAuthResponseDto(user.Id, token.AccessToken , token.RefreshToken, user.FullName, user.Balance);
 
     public async Task<UserRefreshToken?> GetRefreshTokenAsync(string token)
     {

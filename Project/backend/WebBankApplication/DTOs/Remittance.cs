@@ -2,14 +2,14 @@
 
 namespace WebBankApplication.DTOs;
 
-public record RemittanceAddDto  
+public record AddRemittanceDto  
 (
     Guid SenderId,
     Guid RecipientId,
     decimal Amount
 );
 
-public record RemittanceHistoryDto
+public record ResponseRemittanceDto
 (
     Guid Id,
     string CounterpartyFullName,

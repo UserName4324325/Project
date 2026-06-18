@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using WebBankApplication.DTOs;
@@ -13,16 +12,14 @@ namespace WebBankApplication.Controllers;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/user")]
 public class UserController : ControllerBase
 {
     private readonly IUserRepository _userRepo;
-    private readonly ITokenService _tokenService;
 
-    public UserController(IUserRepository userRepo, ITokenService tokenService)
+    public UserController(IUserRepository userRepo)
     {
         _userRepo = userRepo;
-        _tokenService = tokenService;
     }
 
     [HttpGet]
@@ -37,33 +34,26 @@ public class UserController : ControllerBase
         return Ok(user);
     }
 
-    [HttpGet("all")]
-    public async Task<IActionResult> GetAllUsers()
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchUsers([FromQuery] string query)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim == null) return Unauthorized();
+        var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier); 
+        if (currentUserId == null) return NotFound();
 
-        var users = await _userRepo.GetAllUsersExceptCurrentAsync(Guid.Parse(userIdClaim.Value));
-        if (users == null || users.Count == 0) return NotFound();
+        var users = await _userRepo.SearchUsersAsync(query, Guid.Parse(currentUserId.Value));
 
         return Ok(users);
     }
 
-    [HttpPut("update")]
-    public async Task<IActionResult> UpdateUser([FromBody] UserUpdateDtos dto)
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-
+    [HttpGet("all")]
+    public async Task<IActionResult> GetAllUsers()
+    {var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
         if (userIdClaim == null) return Unauthorized();
-        if (dto.Id != Guid.Parse(userIdClaim.Value)) return Forbid();
+        
 
+        var users = await _userRepo.GetAllUsersAsync(Guid.Parse(userIdClaim.Value));
+        if (users == null || users.Count == 0) return NotFound();
 
-        var user = await _userRepo.UpdateUserAsync(dto);
-        if (!user) return BadRequest("Не удалось обновить профиль. Проверьте пароли или данные.");
-
-        var updatedUser = await _userRepo.GetByIdAsync(dto.Id);
-        var newToken = _tokenService.CreateToken(updatedUser);
-
-        return Ok(new { message = "Профиль успешно обновлен", user = updatedUser });
+        return Ok(users);
     }
 }

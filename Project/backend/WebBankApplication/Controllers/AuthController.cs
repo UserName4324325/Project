@@ -1,5 +1,4 @@
-﻿using Elastic.Clients.Elasticsearch.Inference;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
@@ -12,7 +11,7 @@ using WebBankApplication.TokenService;
 namespace WebBankApplication.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/auth")]
 public class AuthController : ControllerBase
 {
     private readonly IAuthRepository _authRepo;
@@ -25,7 +24,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register(UserRegistrationDto request)
+    public async Task<IActionResult> Register([FromBody] UserRegistrationDto request)
     {
         if (await _authRepo.UserExists(request.Email))
             return BadRequest(new { message = "Пользователь с таким Email уже зарегистрирован" });
@@ -45,7 +44,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
-    public async Task<IActionResult> Login(UserLoginDto request)
+    public async Task<IActionResult> Login([FromBody] UserLoginDto request)
     {
         var authResponse = await _authRepo.Login(request.Email, request.Password);
 
@@ -66,7 +65,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("refresh")]
-    public async Task<IActionResult> RefreshTocken()
+    public async Task<IActionResult> RefreshToken()
     {
         var oldRefreshToken = Request.Cookies["refreshToken"];
 

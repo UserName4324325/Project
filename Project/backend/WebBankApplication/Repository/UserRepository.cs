@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using WebBankApplication.Data;
 using WebBankApplication.DTOs;
@@ -16,9 +16,11 @@ namespace WebBankApplication.Repository;
 public class UserRepository : IUserRepository
 {
     private readonly AppDbContext _context;
-    public UserRepository(AppDbContext context)
+    private readonly ElasticsearchClient _elasticClient;
+    public UserRepository(AppDbContext context, ElasticsearchClient elasticsearchClient)
     {
         _context = context;
+        _elasticClient = elasticsearchClient;
     }
 
     public async Task<UserResponseDtos?> GetByIdAsync(Guid id)
@@ -27,49 +29,56 @@ public class UserRepository : IUserRepository
 
         return MapToUserResponseDto(user);
     }   
-    
-    public async Task<List<AllUsersResponseDtos>> GetAllUsersExceptCurrentAsync(Guid CurrentUserId)
-    {
-        var users = await _context.Users.ToListAsync();
-        return users.Select(MapToAllUsersResponseDto).ToList()!;
-    }
-
-    public async Task<bool> UpdateUserAsync(UserUpdateDtos dto)
-    {
-        var user = await _context.Users.FindAsync(dto.Id);
-        if (user == null) return false;
-
-        if (!string.IsNullOrEmpty(dto.NewPassword))
-        {
-            if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
-            {
-                return false;
-            }
-
-            if (BCrypt.Net.BCrypt.Verify(dto.NewPassword, user.PasswordHash))
-            {
-                return false;
-            }
-
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
-        }
-
-        user.FullName = dto.FullName;
-        user.Email = dto.Email;
-
-        try
-        {
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        catch
-        {
-            return false;
-        }
-    }
-    private AllUsersResponseDtos? MapToAllUsersResponseDto(User? user) =>
-        user == null ? null : new AllUsersResponseDtos(user.Id, user.FullName, user.Email);
     private UserResponseDtos? MapToUserResponseDto(User? user) =>
         user == null ? null : new UserResponseDtos(user.Id, user.FullName, user.Email, user.Balance);
+    
+    public async Task<List<AllUsersResponseDtos>> GetAllUsersAsync(Guid CurrentUserId)
+    {
+        return await _context.Users.Select(AsAllUsersResponseDtos).ToListAsync();
+    }
 
+    private static readonly Expression<Func<User, AllUsersResponseDtos>> AsAllUsersResponseDtos = u =>
+    new AllUsersResponseDtos
+    (
+        u.Id,
+        u.FullName,
+        u.Email
+    );
+
+    // в разработке
+    public async Task<List<AllUsersResponseDtos>> SearchUsersAsync(string query, Guid currentUserId)
+    {        
+        if (string.IsNullOrWhiteSpace(query)) return new List<AllUsersResponseDtos>();
+
+        var searchResponse = await _elasticClient.SearchAsync<User>(s => s
+            .Indices("users")
+            .Query(q => q
+                .Bool(b => b
+                    .Must(must => must
+                        .MultiMatch(mm => mm
+                            .Query(query)
+                            .Fields(new[] { "fullName", "email" })
+                            .Fuzziness(new Fuzziness("AUTO")) 
+                        )
+                    )
+                    .MustNot(mn => mn
+                        .Term(t => t.Field("id").Value(FieldValue.String(currentUserId.ToString())))
+                    )
+                )
+            )
+            .Size(10)
+        );
+
+        if (!searchResponse.IsValidResponse)
+        {
+            Console.WriteLine($"[Elasticsearch Error]: {searchResponse.DebugInformation}");
+            return new List<AllUsersResponseDtos>();
+        }
+
+
+        return searchResponse.Documents.Select(MapToResponseAllUsersDto).ToList();
+    }
+
+    private AllUsersResponseDtos MapToResponseAllUsersDto(User u) =>
+        new AllUsersResponseDtos(u.Id, u.FullName, u.Email);
 }

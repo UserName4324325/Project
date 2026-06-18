@@ -2,7 +2,7 @@
 
 namespace WebBankApplication.DTOs;
 
-public record TakeLoanDto(
+public record AddLoanDto(
 
     Guid UserId,
     decimal Amount,
@@ -12,7 +12,7 @@ public record TakeLoanDto(
 );
 
 
-public record LoanResponseDto(
+public record ResponseLoanDto(
 
     Guid Id,
     int TermInSeconds,

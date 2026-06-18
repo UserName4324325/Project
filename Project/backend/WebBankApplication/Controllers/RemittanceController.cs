@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using WebBankApplication.DTOs;
 using WebBankApplication.Repository;
-using Microsoft.AspNetCore.Authorization;
 
 [Authorize]
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/remittance")]
 public class RemittanceController : ControllerBase
 {
     private readonly IRemittanceRepository _repository;
@@ -18,18 +19,29 @@ public class RemittanceController : ControllerBase
         _repository = repository;
     }
 
-    [HttpPost("remittance")]
-    public async Task<IActionResult> RemittanceAdd([FromBody] RemittanceAddDto dto)
+    [HttpPost("add")]
+    public async Task<IActionResult> AddRemittance([FromBody] AddRemittanceDto dto)
     {
-        var result = await _repository.RemittanceAddAsync(dto);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        // переделать проверку 
+        if (Guid.Parse(userIdClaim.Value) != dto.SenderId ||
+            Guid.Parse(userIdClaim.Value) == dto.RecipientId) 
+            return BadRequest();
+
+        var result = await _repository.AddRemittanceAsync(dto);
         if (!result) return BadRequest("Ошибка транзакции.");
         return Ok();
     }
 
-    [HttpGet("history/{userId}")]
-    public async Task<ActionResult<List<RemittanceHistoryDto>>> GetHistory(Guid userId)
+    [HttpGet("history")]
+    public async Task<ActionResult<List<ResponseRemittanceDto>>> GetHistory()
     {
-        var history = await _repository.GetRemittanceHistoryAsync(userId);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var history = await _repository.GetRemittanceHistoryAsync(Guid.Parse(userIdClaim.Value));
         return Ok(history);
     }
 }

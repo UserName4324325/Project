@@ -7,7 +7,7 @@ namespace WebBankApplication.Repository;
 
 public interface IDepositRepository
 {
-    Task<DepositResponseDto> OpenDeposit(OpenDepositDto dto);
-    Task<List<DepositResponseDto>> GetUserDeposits(Guid userId);
+    Task<ResponseDepositDto> AddDeposit(AddDepositDto dto);
+    Task<List<ResponseDepositDto>> GetDeposits(Guid userId);
     Task ProcessExpiredDeposits();
 }

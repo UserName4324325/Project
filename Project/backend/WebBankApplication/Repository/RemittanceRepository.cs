@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using WebBankApplication.Data;
 using WebBankApplication.DTOs;
@@ -17,7 +18,7 @@ public class RemittanceRepository : IRemittanceRepository
         _context = context;
     }
 
-    public async Task<bool> RemittanceAddAsync(RemittanceAddDto dto)
+    public async Task<bool> AddRemittanceAsync(AddRemittanceDto dto)
     {
         using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -55,18 +56,24 @@ public class RemittanceRepository : IRemittanceRepository
         }
     }
 
-    public async Task<List<RemittanceHistoryDto>> GetRemittanceHistoryAsync(Guid userId)
+    public async Task<List<ResponseRemittanceDto>> GetRemittanceHistoryAsync(Guid userId)
     {
         return await _context.Remittances
             .Where(r => r.SenderId == userId || r.RecipientId == userId)
             .OrderByDescending(r => r.Date)
-            .Select(r => new RemittanceHistoryDto(
-                Id: r.Id,
-                CounterpartyFullName: r.SenderId == userId ? r.Recipient.FullName : r.Sender.FullName,
-                Amount: r.Amount,
-                Date: r.Date,
-                IsIncoming: r.RecipientId == userId
-            ))
+            .Select(MapToResponseRemittanceDto(userId))
             .ToListAsync();
+    }
+
+    private static Expression<Func<Remittance, ResponseRemittanceDto>> MapToResponseRemittanceDto(Guid userId)
+    {
+        return r => new ResponseRemittanceDto
+        (
+            r.Id,
+            r.SenderId == userId ? r.Recipient!.FullName : r.Sender!.FullName,
+            r.Amount,
+            r.Date,
+            r.RecipientId == userId
+        );
     }
 }

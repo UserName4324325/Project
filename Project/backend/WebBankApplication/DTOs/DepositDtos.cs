@@ -2,7 +2,7 @@
 
 namespace WebBankApplication.DTOs;
 
-public record OpenDepositDto(
+public record AddDepositDto(
 
     Guid UserId,
     decimal Amount,
@@ -10,7 +10,7 @@ public record OpenDepositDto(
     float InterestRate
 
 );
-public record DepositResponseDto(
+public record ResponseDepositDto(
 
     Guid Id,
     decimal Amount,

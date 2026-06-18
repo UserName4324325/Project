@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using WebBankApplication.DTOs;
 using WebBankApplication.Repository;
@@ -9,23 +10,23 @@ using WebBankApplication.Repository;
 namespace WebBankApplication.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/loan")]
 [Authorize]
-public class LoansController : ControllerBase
+public class LoanController : ControllerBase
 {
     private readonly ILoanRepository _loanRepo;
 
-    public LoansController(ILoanRepository loanRepo)
+    public LoanController(ILoanRepository loanRepo)
     {
         _loanRepo = loanRepo;
     }
 
-    [HttpPost("take")]
-    public async Task<IActionResult> TakeLoan([FromBody] TakeLoanDto dto)
+    [HttpPost("add")]
+    public async Task<IActionResult> AddLoan([FromBody] AddLoanDto dto)
     {
         try
         {
-            var result = await _loanRepo.TakeLoan(dto);
+            var result = await _loanRepo.AddLoan(dto);
             return Ok(result);
         }
         catch (Exception ex)
@@ -34,10 +35,13 @@ public class LoansController : ControllerBase
         }
     }
 
-    [HttpGet("user/{userId}")]
-    public async Task<IActionResult> GetUserLoans(Guid userId)
+    [HttpGet("user")]
+    public async Task<IActionResult> GetLoans()
     {
-        var loans = await _loanRepo.GetUserLoans(userId);
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null) return Unauthorized();
+
+        var loans = await _loanRepo.GetLoans(Guid.Parse(userIdClaim.Value));
         return Ok(loans);
     }
 }

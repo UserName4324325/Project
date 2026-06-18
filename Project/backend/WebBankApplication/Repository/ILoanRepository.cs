@@ -7,7 +7,7 @@ namespace WebBankApplication.Repository;
 
 public interface ILoanRepository
 {
-    Task<LoanResponseDto> TakeLoan(TakeLoanDto dto);
-    Task<List<LoanResponseDto>> GetUserLoans(Guid userId);
+    Task<ResponseLoanDto> AddLoan(AddLoanDto dto);
+    Task<List<ResponseLoanDto>> GetLoans(Guid userId);
     Task ProcessLoanPayments();
 }

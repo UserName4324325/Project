@@ -7,6 +7,6 @@ namespace WebBankApplication.Repository;
 
 public interface IRemittanceRepository
 {
-    Task<bool> RemittanceAddAsync(RemittanceAddDto dto); 
-    Task<List<RemittanceHistoryDto>> GetRemittanceHistoryAsync(Guid userId);
+    Task<bool> AddRemittanceAsync(AddRemittanceDto dto); 
+    Task<List<ResponseRemittanceDto>> GetRemittanceHistoryAsync(Guid userId);
 }

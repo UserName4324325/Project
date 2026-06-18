@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using WebBankApplication.Data;
 using WebBankApplication.DTOs;
@@ -18,14 +19,14 @@ public class LoanRepository : ILoanRepository
         _context = context;
     }
 
-    public async Task<LoanResponseDto> TakeLoan(TakeLoanDto dto)
+    public async Task<ResponseLoanDto> AddLoan(AddLoanDto dto) 
     {
         var user = await _context.Users.FindAsync(dto.UserId);
 
         if (user == null) throw new Exception("Пользователь не найден");
 
         // АННУИТЕТНАЯ МАТЕМАТИКА
-        decimal monthlyRate = (decimal)dto.InterestRate / 12 / 100;
+        decimal monthlyRate = (decimal)dto.InterestRate / 12m / 100m;
         decimal pow = (decimal)Math.Pow(1 + (double)monthlyRate, dto.TermInSeconds);
 
         decimal paymentPerSecond = dto.Amount * (monthlyRate * pow) / (pow - 1);
@@ -49,18 +50,32 @@ public class LoanRepository : ILoanRepository
         await _context.Loans.AddAsync(loan);
         await _context.SaveChangesAsync();
 
-        return MapToLoanResponseDto(loan);
+        return MapToResponseLoanDto(loan);
     }
+    private ResponseLoanDto MapToResponseLoanDto(Loan l) =>
+        new ResponseLoanDto(l.Id, l.TermInSeconds, l.TotalAmount, l.RemainingAmount, l.InterestRate, l.StartDate, l.PerSecondPayment, l.IsPaid);
 
-    public async Task<List<LoanResponseDto>> GetUserLoans(Guid userId)
+    public async Task<List<ResponseLoanDto>> GetLoans(Guid userId)
     {
-        var loans = await _context.Loans
+        return await _context.Loans
             .Where(l => l.UserId == userId)
             .OrderByDescending(l => l.StartDate)
+            .Select(AsResponseLoanDto)
             .ToListAsync();
-
-        return loans.Select(MapToLoanResponseDto).ToList();
     }
+
+    private static readonly Expression<Func<Loan, ResponseLoanDto>> AsResponseLoanDto = l =>
+    new ResponseLoanDto
+    (
+        l.Id,
+        l.TermInSeconds,
+        l.TotalAmount,
+        l.RemainingAmount,
+        l.InterestRate,
+        l.StartDate,
+        l.PerSecondPayment,
+        l.IsPaid
+    );
 
     // background method
     public async Task ProcessLoanPayments()
@@ -89,6 +104,4 @@ public class LoanRepository : ILoanRepository
         await _context.SaveChangesAsync();
     }
 
-    private LoanResponseDto MapToLoanResponseDto(Loan l) =>
-        new LoanResponseDto(l.Id, l.TermInSeconds, l.TotalAmount, l.RemainingAmount, l.InterestRate, l.StartDate, l.PerSecondPayment, l.IsPaid);
 }
